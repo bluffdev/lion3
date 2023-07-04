@@ -1,0 +1,42 @@
+{
+  "name": "lion",
+  "version": "3.0.0",
+  "description": "🦁 A Discord bot from scratch for the UCF Computer Science Discord.",
+  "main": "src/index.ts",
+  "scripts": {
+    "watch": "tsc -w",
+    "build": "tsc",
+    "dev": "concurrently \"npm:watch\" \"nodemon dist/index.js\"",
+    "start": "npm run build && dist/index.js"
+  },
+  "keywords": [
+    "Discord",
+    "UCF",
+    "University of Central Florida",
+    "CS",
+    "Computer Science"
+  ],
+  "author": "Brandon Rubio",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^1.7.1",
+    "discord.js": "^14.11.0",
+    "pino": "^8.14.1",
+    "pino-pretty": "^10.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.3",
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "@typescript-eslint/parser": "^5.61.0",
+    "concurrently": "^8.2.0",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.44.0",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.8",
+    "typescript": "^5.1.6"
+  }
+}
