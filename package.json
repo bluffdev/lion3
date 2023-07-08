@@ -1,11 +1,15 @@
 {
   "name": "lion",
   "version": "3.0.0",
-  "description": "🦁 A Discord bot from scratch for the UCF Computer Science Discord.",
+  "description": "A better Discord bot for the UCF Computer Science Discord",
   "main": "src/index.ts",
   "scripts": {
+    "lint": "eslint . --fix --cache --ext .js,.ts",
+    "lint:check": "eslint . --cache --ext .js,.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "watch": "tsc -w",
-    "build": "tsc",
+    "build": "tsc --project tsconfig.json",
     "dev": "concurrently \"npm:watch\" \"nodemon dist/index.js\"",
     "start": "npm run build && dist/index.js"
   },
