@@ -1,20 +1,18 @@
-import { Client, CommandInteraction, Events, Interaction, REST } from 'discord.js';
-import { env, Logger } from './utils';
-import { CommandDeploymentService } from './services';
+import { CommandInteraction, Events, Interaction } from 'discord.js';
+import { connectToDatabase, env, Logger } from './utils';
 import { CommandMetadata } from './commands';
 import { CommandHandler } from './events/command-handler';
+import { clientService, commandDeploymentService } from './services';
 
 export class Bot {
-  constructor(private client: Client, private commandHandler: CommandHandler) {
+  constructor(private commandHandler: CommandHandler) {
+    connectToDatabase(env.MONGO_URL);
     this.registerSlashCommands();
     this.registerListeners();
     this.login(env.CLIENT_TOKEN);
   }
 
   private async registerSlashCommands(): Promise<void> {
-    let commandDeploymentService = new CommandDeploymentService(
-      new REST({ version: '10' }).setToken(env.CLIENT_TOKEN)
-    );
     let localCmds = [...Object.values(CommandMetadata)];
     try {
       await commandDeploymentService.register(localCmds);
@@ -24,13 +22,13 @@ export class Bot {
   }
 
   private registerListeners(): void {
-    this.client.on(Events.InteractionCreate, (intr: Interaction) => this.onInteraction(intr));
-    this.client.once(Events.ClientReady, () => Logger.info('Client is ready'));
+    clientService.on(Events.InteractionCreate, (intr: Interaction) => this.onInteraction(intr));
+    clientService.once(Events.ClientReady, () => Logger.info('Client is ready'));
   }
 
   private async login(token: string): Promise<void> {
     try {
-      await this.client.login(token);
+      await clientService.login(token);
       Logger.info('Client has logged in');
     } catch (error) {
       Logger.error('Client login error', error);
