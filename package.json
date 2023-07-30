@@ -8,7 +8,7 @@
     "lint:check": "eslint . --cache --ext .js,.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "build": "tsc --project tsconfig.json",
+    "build": "tsc",
     "dev": "nodemon src/index.ts",
     "start": "npm run build && node dist/index.js",
     "commands:register": "npm run build && node dist/deploy-commands.js register",
