@@ -3,4 +3,4 @@ services:
   lion:
     build: .
     env_file:
-     - .env
+      - .env
