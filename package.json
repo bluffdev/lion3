@@ -8,9 +8,8 @@
     "lint:check": "eslint . --cache --ext .js,.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "watch": "tsc -w",
     "build": "tsc --project tsconfig.json",
-    "dev": "concurrently \"npm:watch\" \"nodemon dist/index.js\"",
+    "dev": "nodemon src/index.ts",
     "start": "npm run build && dist/index.js"
   },
   "keywords": [
@@ -31,13 +30,13 @@
     "discord.js": "^14.11.0",
     "mongoose": "^7.4.0",
     "pino": "^8.14.1",
-    "pino-pretty": "^10.0.1"
+    "pino-pretty": "^10.0.1",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@types/node": "^20.3.3",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
-    "concurrently": "^8.2.0",
     "dotenv": "^16.3.1",
     "eslint": "^8.44.0",
     "eslint-plugin-import": "^2.27.5",
