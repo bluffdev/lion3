@@ -10,7 +10,9 @@
     "format:check": "prettier --check .",
     "build": "tsc --project tsconfig.json",
     "dev": "nodemon src/index.ts",
-    "start": "npm run build && dist/index.js"
+    "start": "npm run build && node dist/index.js",
+    "commands:register": "npm run build && node dist/deploy-commands.js register",
+    "commands:delete": "npm run build && node dist/deploy-commands.js delete"
   },
   "keywords": [
     "Discord",
