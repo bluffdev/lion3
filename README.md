@@ -9,4 +9,6 @@
 	</p>
 </div>
 
-🦁 Lion is a Discord bot primarily used for moderation and management of other features of the UCF Computer Science Discord.
+## About
+
+Lion3 is a Discord bot primarily used for moderation and management of other features of the UCF Computer Science Discord. It is based off the older Lion bot but supports modern discord features like slash commands.
