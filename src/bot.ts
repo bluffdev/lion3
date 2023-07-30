@@ -2,7 +2,7 @@ import { CommandInteraction, Events, Interaction } from 'discord.js';
 import { connectToDatabase, env, Logger } from './utils';
 import { CommandMetadata } from './commands';
 import { CommandHandler } from './events/command-handler';
-import { clientService, commandDeploymentService } from './services';
+import { clientService, commandDeploymentService, guildService } from './services';
 
 export class Bot {
   constructor(private commandHandler: CommandHandler) {
@@ -23,7 +23,10 @@ export class Bot {
 
   private registerListeners(): void {
     clientService.on(Events.InteractionCreate, (intr: Interaction) => this.onInteraction(intr));
-    clientService.once(Events.ClientReady, () => Logger.info('Client is ready'));
+    clientService.once(Events.ClientReady, () => {
+      Logger.info('Client is ready');
+      guildService.setGuild();
+    });
   }
 
   private async login(token: string): Promise<void> {
