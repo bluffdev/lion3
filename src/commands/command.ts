@@ -1,6 +1,21 @@
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, PermissionsString } from 'discord.js';
 
 export interface Command {
-  data: SlashCommandBuilder;
+  name: string;
+  deferType: CommandDeferType;
+  requireClientPerms: PermissionsString[];
   execute(interaction: CommandInteraction): Promise<void>;
+}
+
+export enum CommandDeferType {
+  PUBLIC = 'PUBLIC',
+  HIDDEN = 'HIDDEN',
+  NONE = 'NONE',
+}
+
+export enum ReportOption {
+  ADD = 'add',
+  WARN = 'warn',
+  LIST = 'list',
+  FULL = 'full',
 }
