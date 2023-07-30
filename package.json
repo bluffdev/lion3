@@ -30,8 +30,7 @@
     "discord.js": "^14.11.0",
     "mongoose": "^7.4.0",
     "pino": "^8.14.1",
-    "pino-pretty": "^10.0.1",
-    "ts-node": "^10.9.1"
+    "pino-pretty": "^10.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.3.3",
@@ -42,6 +41,7 @@
     "eslint-plugin-import": "^2.27.5",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.8",
+    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   }
 }
