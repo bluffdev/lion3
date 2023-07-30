@@ -1,8 +1,8 @@
 // import { RegisterCommand } from './channels';
-import { PingCommand } from './moderation';
 import { Command } from './command';
+import { PingCommand } from './moderation';
 
 export { Command } from './command';
 export { CommandMetadata } from './metadata';
 
-export const commands: Command[] = [PingCommand];
+export const commands: Command[] = [new PingCommand()];
