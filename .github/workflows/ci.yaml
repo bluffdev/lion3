@@ -10,22 +10,6 @@ jobs:
   linter:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Lint Code Base
-        uses: github/super-linter@v4
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: "main"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  format:
-    runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [18.x]
@@ -41,8 +25,8 @@ jobs:
       - name: npm install
         run: npm install 
       
-      - name: npm format check
-        run: npm run format:check 
+      - name: npm lint check
+        run: npm run lint:check 
 
   build:
     runs-on: ubuntu-latest
