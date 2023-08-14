@@ -12,7 +12,8 @@
     "dev": "nodemon src/index.ts",
     "start": "npm run build && node dist/index.js",
     "commands:register": "npm run build && node dist/deploy-commands.js register",
-    "commands:delete": "npm run build && node dist/deploy-commands.js delete"
+    "commands:delete": "npm run build && node dist/deploy-commands.js delete",
+    "prepare": "husky install"
   },
   "author": "Brandon Rubio",
   "license": "MIT",
@@ -51,6 +52,7 @@
     "nodemon": "^2.0.22",
     "prettier": "^2.8.8",
     "ts-node": "^10.9.1",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "husky": "^8.0.0"
   }
 }
