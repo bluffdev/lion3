@@ -1,9 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import {
-  ModerationBanDocument,
-  ModerationReportDocument,
-  ModerationWarningDocument,
-} from '../utils';
+import { ModerationReportDocument, ModerationWarningDocument } from '../utils';
 
 // Moderation Report
 
@@ -21,25 +17,6 @@ const moderationReportSchema = new Schema(
 export const ModerationReportModel = mongoose.model<ModerationReportDocument>(
   'modreports',
   moderationReportSchema
-);
-
-// Moderation Ban
-
-const moderationBanSchema = new Schema(
-  {
-    user: String,
-    guild: String,
-    date: Date,
-    active: Boolean,
-    reason: String,
-    reportId: Schema.Types.ObjectId,
-  },
-  { collection: 'modbans' }
-);
-
-export const ModerationBanModel = mongoose.model<ModerationBanDocument>(
-  'modbans',
-  moderationBanSchema
 );
 
 // Moderation Warnings.

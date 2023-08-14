@@ -6,7 +6,7 @@ import {
   Snowflake,
   TextChannel,
 } from 'discord.js';
-import { Maybe, Report } from '../utils';
+import { Maybe, UserReport } from '../utils';
 import { clientService, guildService } from './';
 import { roles } from '../constants';
 
@@ -21,7 +21,7 @@ export class WarningService {
 
   public ACKNOWLEDGE_EMOJI = '👍';
 
-  public async sendModMessageToUser(message: string, rep: Report): Promise<void> {
+  public async sendModMessageToUser(message: string, rep: UserReport): Promise<void> {
     await clientService.users.cache
       .get(rep.user)
       ?.send({
@@ -31,7 +31,7 @@ export class WarningService {
       .catch(() => this.createChannelForWarn(message, rep));
   }
 
-  private async createChannelForWarn(message: string, rep: Report): Promise<void> {
+  private async createChannelForWarn(message: string, rep: UserReport): Promise<void> {
     if (!this._warnCategory) {
       this._warnCategory = guildService.getChannel('warnings') as CategoryChannel;
     }
@@ -57,7 +57,7 @@ export class WarningService {
     await member.roles.add(guildService.getRole('Suspended'));
   }
 
-  private async getChanForUser(rep: Report, warnCat: CategoryChannel): Promise<GuildChannel> {
+  private async getChanForUser(rep: UserReport, warnCat: CategoryChannel): Promise<GuildChannel> {
     if (this._chanMap.has(rep.user)) {
       return this._chanMap.get(rep.user);
     }
@@ -82,7 +82,7 @@ export class WarningService {
     });
   }
 
-  private serializeToEmbed(message: string, rep: Report): IReportPayload {
+  private serializeToEmbed(message: string, rep: UserReport): IReportPayload {
     const embed = new EmbedBuilder()
       .setTitle(message)
       .addFields({ name: 'Reason', value: rep.description ?? '<none>', inline: true })

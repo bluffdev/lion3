@@ -9,6 +9,7 @@ import { WarningService } from './warning-service';
 export const commandDeploymentService = new CommandDeploymentService(
   new REST({ version: '10' }).setToken(env.CLIENT_TOKEN)
 );
+
 export const clientService = new ClientService();
 export const guildService = new GuildService();
 export const warningService = new WarningService();

@@ -49,7 +49,7 @@ export function isID(id: string): boolean {
   return regex.test(id);
 }
 
-export function serialiseReportForMessage(report: Report): string {
+export function serialiseReportForMessage(report: UserReport): string {
   const attachments =
     (report.attachments && report.attachments.length && report.attachments.join(', ')) ||
     'no attachment';
@@ -103,7 +103,7 @@ export interface IModReportRequest {
 
 export type ModerationWarningDocument = IModerationWarning & Document;
 
-export class Report implements IModerationReport {
+export class UserReport implements IModerationReport {
   public guild: Snowflake;
   public user: Snowflake;
   public description?: string;
