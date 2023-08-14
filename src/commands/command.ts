@@ -2,6 +2,7 @@ import { CommandInteraction, PermissionsString } from 'discord.js';
 
 export interface Command {
   name: string;
+  channels?: string[];
   deferType: CommandDeferType;
   requireClientPerms: PermissionsString[];
   execute(interaction: CommandInteraction): Promise<void>;
@@ -13,9 +14,7 @@ export enum CommandDeferType {
   NONE = 'NONE',
 }
 
-export enum ReportOption {
-  ADD = 'add',
-  WARN = 'warn',
-  LIST = 'list',
-  FULL = 'full',
-}
+export const Status = {
+  SUCCESS: true,
+  FAILURE: false,
+};
