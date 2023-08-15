@@ -1,10 +1,9 @@
 import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  PermissionFlagsBits,
-  PermissionsBitField,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
+import { moderator } from '../constants';
 
 export const CommandMetadata: {
   [command: string]: RESTPostAPIChatInputApplicationCommandsJSONBody;
@@ -15,14 +14,12 @@ export const CommandMetadata: {
     dm_permission: false,
     default_member_permissions: undefined,
   },
-  REPORT: {
+  MOD_REPORT: {
     type: ApplicationCommandType.ChatInput,
-    name: 'report',
+    name: 'modreport',
     description: 'Reports User',
     dm_permission: false,
-    default_member_permissions: PermissionsBitField.resolve([
-      PermissionFlagsBits.Administrator,
-    ]).toString(),
+    default_member_permissions: moderator,
     options: [
       {
         name: 'tag',
@@ -31,31 +28,35 @@ export const CommandMetadata: {
         required: true,
       },
       {
+        name: 'warn',
+        description: 'Do you want to issue a warning?',
+        type: ApplicationCommandOptionType.Boolean,
+        required: true,
+      },
+      {
         name: 'description',
         description: 'Reason for report',
         type: ApplicationCommandOptionType.String,
         required: true,
+      },
+      {
+        name: 'screenshot',
+        description: 'Screenshot of offense',
+        type: ApplicationCommandOptionType.Attachment,
+        required: false,
       },
     ],
   },
-  WARN: {
+  MOD_LIST: {
     type: ApplicationCommandType.ChatInput,
-    name: 'warn',
-    description: 'Warns a user',
+    name: 'modlist',
+    description: 'Sends moderation reports for a user',
     dm_permission: false,
-    default_member_permissions: PermissionsBitField.resolve([
-      PermissionFlagsBits.Administrator,
-    ]).toString(),
+    default_member_permissions: moderator,
     options: [
       {
         name: 'tag',
         description: 'Discord user tag',
-        type: ApplicationCommandOptionType.String,
-        required: true,
-      },
-      {
-        name: 'description',
-        description: 'Reason for report',
         type: ApplicationCommandOptionType.String,
         required: true,
       },

@@ -1,3 +1,3 @@
 export { PingCommand } from './ping';
-export { ReportCommand } from './report';
-export { WarnCommand } from './warn';
+export { ModReportCommand } from './modreport';
+export { ModListCommand } from './modlist';
