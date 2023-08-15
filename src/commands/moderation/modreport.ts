@@ -16,11 +16,6 @@ export class ModReportCommand implements Command {
     const description = interaction.options.getString('description');
     const attachment = interaction.options.getAttachment('screenshot', false);
 
-    if (!attachment) {
-      Logger.error('Attachment is undefined');
-      return;
-    }
-
     const member = (await guildService.get().members.fetch()).find(
       member => member.displayName === user
     );
@@ -31,7 +26,12 @@ export class ModReportCommand implements Command {
     }
 
     try {
-      const newReport = new UserReport(guildService.get(), member.id, description, attachment.url);
+      const newReport = new UserReport(
+        guildService.get(),
+        member.id,
+        description,
+        attachment ? attachment.url : undefined
+      );
 
       if (!newReport) {
         await reply(interaction, 'Error creating report');

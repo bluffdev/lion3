@@ -72,7 +72,7 @@ export interface IReportSummary {
 export interface IModerationReport {
   guild: Snowflake;
   user: Snowflake;
-  description?: string;
+  description: string;
   attachment?: string;
   timeStr: string;
   _id?: ObjectId;
@@ -111,11 +111,11 @@ export type ModerationWarningDocument = IModerationWarning & Document;
 export class UserReport implements IModerationReport {
   public guild: Snowflake;
   public user: Snowflake;
-  public description?: string;
+  public description: string;
   public attachment?: string;
   public timeStr: string;
 
-  constructor(guild: Guild, id: string, description?: string, attachment?: string) {
+  constructor(guild: Guild, id: string, description: string, attachment?: string) {
     this.guild = guild.id;
     this.user = id;
     this.description = description;

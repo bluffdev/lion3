@@ -7,7 +7,7 @@ import {
   Snowflake,
   TextChannel,
 } from 'discord.js';
-import { Maybe, UserReport } from '../utils';
+import { Logger, Maybe, UserReport } from '../utils';
 import { clientService, guildService } from './';
 import { roles } from '../constants';
 
@@ -23,13 +23,22 @@ export class WarningService {
   public ACKNOWLEDGE_EMOJI = '👍';
 
   public async sendModMessageToUser(message: string, rep: UserReport): Promise<void> {
-    await clientService.users.cache
-      .get(rep.user)
-      ?.send({
-        content: `${message} Reason: ${rep.description ?? '<none>'}`,
-        files: [new AttachmentBuilder(rep.attachment)],
-      })
-      .catch(() => this.createChannelForWarn(message, rep));
+    const user = clientService.users.cache.get(rep.user);
+
+    try {
+      if (rep.attachment) {
+        await user.send({
+          content: `${message} Reason: ${rep.description}`,
+          files: [new AttachmentBuilder(rep.attachment)],
+        });
+      } else {
+        await user.send({
+          content: `${message} Reason: ${rep.description}`,
+        });
+      }
+    } catch (error) {
+      Logger.error('error sending user modmessage', error);
+    }
   }
 
   private async createChannelForWarn(message: string, rep: UserReport): Promise<void> {
