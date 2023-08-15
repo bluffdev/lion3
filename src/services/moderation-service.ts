@@ -9,8 +9,7 @@ import {
 } from 'discord.js';
 import { clientService, guildService, warningService } from '.';
 import {
-  IModerationReport,
-  IModerationWarning,
+  insertReport,
   IReportSummary,
   Logger,
   Maybe,
@@ -23,8 +22,7 @@ import {
 } from '../utils';
 import { channels, roles } from '../constants';
 import { ObjectId } from 'mongodb';
-import { AltTrackerModel, ModerationReportModel, ModerationWarningModel } from '../models';
-import { promises, readFileSync } from 'fs';
+import { ModerationReportModel, ModerationWarningModel } from '../models';
 
 export class ModerationService {
   private readonly QUICK_WARNS_THRESH = 3;
@@ -32,16 +30,6 @@ export class ModerationService {
   private readonly KICK_THRESH = 3;
   private readonly SUSPEND_THRESH = 4;
   private readonly BAN_THRESH = 5;
-
-  // Files a report but does not warn the subject.
-  public async fileReport(report: UserReport): Promise<string> {
-    const res = await this._insertReport(report);
-    if (res) {
-      return `Added report: ${serialiseReportForMessage(report)}`;
-    } else {
-      return 'Could not insert report.';
-    }
-  }
 
   public async fileAnonReportWithTicketId(ticket_id: string, message: Message): Promise<string> {
     // overwrite with our user to protect reporter
@@ -118,6 +106,16 @@ export class ModerationService {
     return [message_id, user_id];
   }
 
+  // Files a report but does not warn subject
+  public async fileReport(report: UserReport): Promise<string> {
+    const res = await insertReport(report);
+    if (res) {
+      return `Added report: ${serialiseReportForMessage(report)}`;
+    } else {
+      return 'Could not insert report.';
+    }
+  }
+
   // Files a report and warns the subject.
   public async fileWarning(report: UserReport): Promise<string> {
     const member = await guildService
@@ -133,10 +131,11 @@ export class ModerationService {
       return 'You cannot warn a bot.';
     }
 
-    const fileReportResult: Maybe<ObjectId> = await this._insertReport(report);
+    const fileReportResult: Maybe<ObjectId> = await insertReport(report);
     await ModerationWarningModel.create({
       user: report.user,
       guild: report.guild,
+      attachment: report.attachment,
       date: new Date(),
       reportId: fileReportResult,
     });
@@ -214,7 +213,7 @@ export class ModerationService {
   }
 
   public async fileBan(report: UserReport, isPermanent: boolean): Promise<string> {
-    const res = await this._insertReport(report);
+    const res = await insertReport(report);
     return await this._fileBan(report, res, isPermanent);
   }
 
@@ -233,7 +232,7 @@ export class ModerationService {
         .members.cache.get(report.user)
         ?.send(
           `You have been banned ${isPermanent ? 'permanently' : 'for one week'} for ${
-            report.description ?? report.attachments?.join(',')
+            report.description ?? report.attachment
           }`
         );
     } catch (error) {
@@ -284,43 +283,26 @@ export class ModerationService {
 
   // Finds any associated IDs
   // Returns all Alt IDs and the one given
-  public async getAllKnownAltIDs(guild: Guild, givenID: string): Promise<string[]> {
-    const altDoc = (await AltTrackerModel.find({})).find(altDoc =>
-      altDoc.knownIDs.includes(givenID)
-    );
 
-    if (altDoc) {
-      return altDoc.knownIDs;
-    }
+  private async getAllReportsForUser(guild: Guild, member: GuildMember): Promise<IReportSummary> {
+    const reports: ModerationReportDocument[] = [
+      ...(await ModerationReportModel.find({ guild: guild.id, user: member.id })),
+    ];
+    const warnings: ModerationWarningDocument[] = [
+      ...(await ModerationWarningModel.find({ guild: guild.id, user: member.id })),
+    ];
+    const banStatus = false;
 
-    return [givenID];
-  }
-
-  private async _getAllReportsWithAlts(): Promise<IReportSummary> {
-    const reports: ModerationReportDocument[] = [];
-    const warnings: ModerationWarningDocument[] = [];
-    let banStatus: string | false = false; // False, else gives details of ban
-
-    // const allKnownIDs = await this.getAllKnownAltIDs(guild, givenID);
-
-    // Add up all reports and warns from alts
-    // for (const id of allKnownIDs) {
-    //   reports.push(...(await ModerationReportModel.find({ guild: guild.id, user: id })));
-    //   warnings.push(...(await ModerationWarningModel.find({ guild: guild.id, user: id })));
-
-    //   if (!banStatus) {
-    //     const newBanStatus = await this._getBanStatus(guild, id);
-    //     if (newBanStatus !== 'Not banned') {
-    //       banStatus = newBanStatus;
-    //     }
-    //   }
-    // }
     return { reports, warnings, banStatus };
   }
 
   // Produces a report summary.
-  public async getModerationSummary(guild: Guild, givenID: string): Promise<EmbedBuilder | string> {
-    const { reports, warnings } = await this._getAllReportsWithAlts();
+  public async getModerationSummary(
+    guild: Guild,
+    member: GuildMember
+  ): Promise<EmbedBuilder | string> {
+    const { reports, warnings } = await this.getAllReportsForUser(guild, member);
+
     const mostRecentWarning = warnings.sort((a, b) => (a.date > b.date ? -1 : 1));
 
     let lastWarning = '<none>';
@@ -332,7 +314,7 @@ export class ModerationService {
       }
     }
 
-    const user = await resolveUser(guild, givenID);
+    const user = await resolveUser(guild, member.id);
     if (!user) {
       return 'Could not get member';
     }
@@ -343,95 +325,10 @@ export class ModerationService {
         { name: 'Total Reports', value: reports.length.toString(), inline: true },
         { name: 'Total Warnings', value: warnings.length.toString(), inline: true },
         { name: 'Ban Status', value: warnings.length.toString(), inline: true },
-        { name: 'Last warning', value: lastWarning },
-        {
-          name: 'Known IDs',
-          value: (await this.getAllKnownAltIDs(guild, givenID)).join('\n'),
-          inline: true,
-        }
+        { name: 'Last warning', value: lastWarning }
       )
       .setTimestamp(new Date())
       .setColor('#ff3300');
-  }
-
-  public async getFullReport(guild: Guild, givenID: string): Promise<string> {
-    const { reports, warnings, banStatus } = await this._getAllReportsWithAlts();
-
-    // Number of Reports > warns
-    // Each row has 2 cells, left cell is report, right cell is warn
-    const rows: string[][] = new Array(reports.length);
-    reports.forEach((report, i) => {
-      rows[i] = new Array(2);
-      rows[i][0] = this._serializeReportForTable(report);
-
-      const reportID = report._id?.toHexString();
-      if (!reportID || !warnings) {
-        return;
-      }
-
-      const relatedWarn = warnings.filter(w => w.reportId?.toHexString() === reportID);
-      if (!relatedWarn?.length) {
-        return;
-      }
-
-      rows[i][1] = this._serializeWarningForTable(relatedWarn[0]);
-    });
-
-    // Create HTML table
-    const table = this.createTableFromReports(rows);
-
-    // Retrieve template
-
-    const defaultHTML = readFileSync('./src/app/__generated__/reportTemplate.html', 'utf8');
-
-    // Replace the placeholders with data we've collected
-    const data = defaultHTML
-      .replace('BAN_STATUS', banStatus || 'Not banned')
-      .replace('DYNAMIC_TABLE', table)
-      .replace('NUM_REPORTS', `${reports.length}`)
-      .replace('NUM_WARNS', `${warnings.length}`)
-      .replace('USER_NAME', `${givenID}`);
-    return await this.writeDataToFile(data);
-  }
-
-  private createTableFromReports(rows: string[][]): string {
-    // Wrap each cell in <td> tags
-    // Wrap each row in <tr> tags
-    return rows
-      .map((row: string[]) => `<tr>${row.map(cell => `<td>${cell}</td>`).join('\n')}</tr>`)
-      .join('\n');
-  }
-
-  private _serializeReportForTable(report: IModerationReport): string {
-    const serializedReport = `Reported on: ${report.timeStr}<br />Description: ${
-      report.description ?? 'No Description'
-    }`;
-    if (!report.attachments?.length) {
-      return serializedReport;
-    }
-
-    return `${serializedReport}<br />Attachments: ${report.attachments.map(a => {
-      // If its an image, embed it
-      if (a.includes('.png') || a.includes('.jpg')) {
-        return `<img src="${a}">`;
-      }
-
-      // Return as hyperlink to file
-      return `<a href="${a}">Linked File</a>`;
-    })}`;
-  }
-
-  private _serializeWarningForTable(warning: IModerationWarning): string {
-    return `Warned on ${warning.date}`;
-  }
-
-  private async writeDataToFile(data: string): Promise<string> {
-    const discrim = `${Math.random()}`;
-    const filename = `/tmp/report${discrim}.html`;
-    await promises.writeFile(filename, data).catch(error => {
-      Logger.error(`While writing to ${filename}`, error);
-    });
-    return filename;
   }
 
   // Bans the user from reading/sending
@@ -475,7 +372,7 @@ export class ModerationService {
     await Promise.all(channelBanPromises);
 
     try {
-      await this._insertReport(
+      await insertReport(
         new UserReport(
           guild,
           id,
@@ -487,10 +384,5 @@ export class ModerationService {
     }
 
     return successfulBanChannelList;
-  }
-
-  private async _insertReport(report: UserReport): Promise<Maybe<ObjectId>> {
-    const rep = await ModerationReportModel.create(report);
-    return rep?.id;
   }
 }

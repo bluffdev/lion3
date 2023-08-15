@@ -7,8 +7,8 @@ const moderationReportSchema = new Schema(
   {
     guild: String,
     user: String,
-    description: { type: String, required: false },
-    attachments: [{ type: String, required: false }],
+    description: { type: String, required: true },
+    attachment: { type: String, required: false },
     timeStr: String,
   },
   { collection: 'modreports' }

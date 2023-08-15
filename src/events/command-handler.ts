@@ -14,6 +14,11 @@ export class CommandHandler implements EventHandler {
   public async process(intr: CommandInteraction | AutocompleteInteraction): Promise<void> {
     let command = findCommand(this.commands, [intr.commandName]);
 
+    if (!command) {
+      Logger.error(`Add command to commands array ${intr.commandName}`);
+      return;
+    }
+
     const allowedChannels = command.channels;
 
     if (allowedChannels) {
@@ -29,10 +34,10 @@ export class CommandHandler implements EventHandler {
     }
 
     try {
-      command.execute(intr as CommandInteraction<CacheType>);
+      await command.execute(intr as CommandInteraction<CacheType>);
       Logger.info(`Executed ${command.name} command`);
     } catch (error) {
-      console.error('Error executing command', error);
+      Logger.error('Error executing command', error);
     }
   }
 }

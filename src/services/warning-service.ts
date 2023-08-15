@@ -1,4 +1,5 @@
 import {
+  AttachmentBuilder,
   CategoryChannel,
   EmbedBuilder,
   GuildChannel,
@@ -6,13 +7,13 @@ import {
   Snowflake,
   TextChannel,
 } from 'discord.js';
-import { Maybe, UserReport } from '../utils';
+import { Logger, Maybe, UserReport } from '../utils';
 import { clientService, guildService } from './';
 import { roles } from '../constants';
 
 interface IReportPayload {
   embed: EmbedBuilder;
-  attachments?: string[];
+  attachment?: string;
 }
 
 export class WarningService {
@@ -22,13 +23,22 @@ export class WarningService {
   public ACKNOWLEDGE_EMOJI = '👍';
 
   public async sendModMessageToUser(message: string, rep: UserReport): Promise<void> {
-    await clientService.users.cache
-      .get(rep.user)
-      ?.send({
-        content: `${message} Reason: ${rep.description ?? '<none>'}`,
-        files: rep.attachments && JSON.parse(JSON.stringify(rep.attachments)),
-      })
-      .catch(() => this.createChannelForWarn(message, rep));
+    const user = clientService.users.cache.get(rep.user);
+
+    try {
+      if (rep.attachment) {
+        await user.send({
+          content: `${message} Reason: ${rep.description}`,
+          files: [new AttachmentBuilder(rep.attachment)],
+        });
+      } else {
+        await user.send({
+          content: `${message} Reason: ${rep.description}`,
+        });
+      }
+    } catch (error) {
+      Logger.error('error sending user modmessage', error);
+    }
   }
 
   private async createChannelForWarn(message: string, rep: UserReport): Promise<void> {
@@ -49,7 +59,7 @@ export class WarningService {
     const serialized = this.serializeToEmbed(message, rep);
     const embed = await (warnChan as TextChannel).send({
       embeds: [serialized.embed],
-      files: serialized.attachments,
+      files: [serialized.attachment],
     });
     await embed.react(this.ACKNOWLEDGE_EMOJI);
 
@@ -87,7 +97,8 @@ export class WarningService {
       .setTitle(message)
       .addFields({ name: 'Reason', value: rep.description ?? '<none>', inline: true })
       .setFooter({ text: 'React to acknowledge this warning' });
-    return { embed, attachments: rep.attachments };
+
+    return { embed, attachment: rep.attachment };
   }
 
   public async deleteChan(id: Snowflake): Promise<void> {

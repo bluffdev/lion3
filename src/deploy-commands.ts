@@ -7,14 +7,14 @@ import { argv } from './utils';
     case 'register': {
       let localCmds = [...Object.values(CommandMetadata)];
       try {
-        await commandDeploymentService.register(localCmds);
+        await commandDeploymentService.registerAllCommands(localCmds);
       } catch (error) {
         throw new Error(error);
       }
       break;
     }
     case 'delete': {
-      await commandDeploymentService.delete();
+      await commandDeploymentService.deleteAllCommands();
       break;
     }
   }

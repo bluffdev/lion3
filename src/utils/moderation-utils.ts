@@ -1,6 +1,8 @@
 import { Guild, GuildMember, Snowflake } from 'discord.js';
 import { Document } from 'mongoose';
 import { ObjectId } from 'mongodb';
+import { ModerationReportModel } from '../models';
+import { Maybe } from './types';
 // Convert any input (tag or id) into an id
 export async function resolveToID(guild: Guild, tag: string): Promise<string | null> {
   try {
@@ -50,12 +52,15 @@ export function isID(id: string): boolean {
 }
 
 export function serialiseReportForMessage(report: UserReport): string {
-  const attachments =
-    (report.attachments && report.attachments.length && report.attachments.join(', ')) ||
-    'no attachment';
+  const attachments = report.attachment || 'no attachment';
   return `\`${report.description ?? 'no description'}\`: [${attachments}] at ${new Date(
     report.timeStr
   ).toLocaleString('en-US')}`;
+}
+
+export async function insertReport(report: UserReport): Promise<Maybe<ObjectId>> {
+  const rep = await ModerationReportModel.create(report);
+  return rep?.id;
 }
 
 export interface IReportSummary {
@@ -67,8 +72,8 @@ export interface IReportSummary {
 export interface IModerationReport {
   guild: Snowflake;
   user: Snowflake;
-  description?: string;
-  attachments?: string[];
+  description: string;
+  attachment?: string;
   timeStr: string;
   _id?: ObjectId;
 }
@@ -106,23 +111,15 @@ export type ModerationWarningDocument = IModerationWarning & Document;
 export class UserReport implements IModerationReport {
   public guild: Snowflake;
   public user: Snowflake;
-  public description?: string;
-  public attachments?: string[];
+  public description: string;
+  public attachment?: string;
   public timeStr: string;
 
-  constructor(guild: Guild, id: string, description?: string, attachments?: string[]) {
+  constructor(guild: Guild, id: string, description: string, attachment?: string) {
     this.guild = guild.id;
     this.user = id;
     this.description = description;
-    this.attachments = attachments;
-
-    const has_desc = this.description && this.description.length;
-    const has_atta = this.attachments && this.attachments.length;
-
-    if (!has_desc && !has_atta) {
-      throw new Error('Need either a description or attachment(s).');
-    }
-
+    this.attachment = attachment;
     this.timeStr = new Date().toISOString();
   }
 

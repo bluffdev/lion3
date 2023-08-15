@@ -9,7 +9,9 @@ import { argv, env, Logger } from '../utils';
 export class CommandDeploymentService {
   constructor(private rest: REST) {}
 
-  public async register(localCmds: RESTPostAPIApplicationCommandsJSONBody[]): Promise<void> {
+  public async registerAllCommands(
+    localCmds: RESTPostAPIApplicationCommandsJSONBody[]
+  ): Promise<void> {
     try {
       for (let cmd of localCmds) {
         await this.rest.post(Routes.applicationCommands(env.CLIENT_ID), { body: cmd });
@@ -20,7 +22,22 @@ export class CommandDeploymentService {
     }
   }
 
-  public async delete(): Promise<void> {
+  public async deleteAllCommands(): Promise<void> {
+    let remoteCmds = (await this.rest.get(
+      Routes.applicationCommands(env.CLIENT_ID)
+    )) as RESTGetAPIApplicationCommandsResult;
+
+    try {
+      for (const cmd of remoteCmds) {
+        await this.rest.delete(Routes.applicationCommand(env.CLIENT_ID, cmd.id));
+      }
+      Logger.info('Application commands have been deleted!');
+    } catch (error) {
+      Logger.error('Error deleting all slash commands', error);
+    }
+  }
+
+  public async deleteSlashCommand(): Promise<void> {
     if (!argv[3]) {
       Logger.error('Please enter a command name: npm run commands:delete <name>');
       return;
