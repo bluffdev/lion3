@@ -20,7 +20,7 @@ export class Bot {
   private async registerSlashCommands(): Promise<void> {
     let localCmds = [...Object.values(CommandMetadata)];
     try {
-      await commandDeploymentService.register(localCmds);
+      await commandDeploymentService.registerAllCommands(localCmds);
     } catch (error) {
       throw new Error(error);
     }
