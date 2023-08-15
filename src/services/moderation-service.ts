@@ -135,6 +135,7 @@ export class ModerationService {
     await ModerationWarningModel.create({
       user: report.user,
       guild: report.guild,
+      attachment: report.attachment,
       date: new Date(),
       reportId: fileReportResult,
     });
@@ -231,7 +232,7 @@ export class ModerationService {
         .members.cache.get(report.user)
         ?.send(
           `You have been banned ${isPermanent ? 'permanently' : 'for one week'} for ${
-            report.description ?? report.attachments?.join(',')
+            report.description ?? report.attachment
           }`
         );
     } catch (error) {

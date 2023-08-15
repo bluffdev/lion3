@@ -1,4 +1,5 @@
 import {
+  AttachmentBuilder,
   CategoryChannel,
   EmbedBuilder,
   GuildChannel,
@@ -12,7 +13,7 @@ import { roles } from '../constants';
 
 interface IReportPayload {
   embed: EmbedBuilder;
-  attachments?: string[];
+  attachment?: string;
 }
 
 export class WarningService {
@@ -26,7 +27,7 @@ export class WarningService {
       .get(rep.user)
       ?.send({
         content: `${message} Reason: ${rep.description ?? '<none>'}`,
-        files: rep.attachments && JSON.parse(JSON.stringify(rep.attachments)),
+        files: [new AttachmentBuilder(rep.attachment)],
       })
       .catch(() => this.createChannelForWarn(message, rep));
   }
@@ -49,7 +50,7 @@ export class WarningService {
     const serialized = this.serializeToEmbed(message, rep);
     const embed = await (warnChan as TextChannel).send({
       embeds: [serialized.embed],
-      files: serialized.attachments,
+      files: [serialized.attachment],
     });
     await embed.react(this.ACKNOWLEDGE_EMOJI);
 
@@ -87,7 +88,8 @@ export class WarningService {
       .setTitle(message)
       .addFields({ name: 'Reason', value: rep.description ?? '<none>', inline: true })
       .setFooter({ text: 'React to acknowledge this warning' });
-    return { embed, attachments: rep.attachments };
+
+    return { embed, attachment: rep.attachment };
   }
 
   public async deleteChan(id: Snowflake): Promise<void> {
