@@ -2,7 +2,6 @@ import {
   Attachment,
   EmbedBuilder,
   Guild,
-  GuildChannel,
   GuildMember,
   TextChannel,
   ThreadAutoArchiveDuration,
@@ -15,7 +14,6 @@ import {
   Logger,
   ModerationReportDocument,
   ModerationWarningDocument,
-  resolveToID,
   resolveUser,
   serialiseReportForMessage,
   UserReport,
@@ -236,57 +234,5 @@ export class ModerationService {
       )
       .setTimestamp(new Date())
       .setColor('#ff3300');
-  }
-
-  public async channelBan(
-    guild: Guild,
-    username: string,
-    channels: GuildChannel[]
-  ): Promise<GuildChannel[]> {
-    const id = await resolveToID(guild, username);
-    const successfulBanChannelList: GuildChannel[] = [];
-
-    if (!id) {
-      Logger.error(`Failed to resolve ${username} to a user.`);
-      return successfulBanChannelList;
-    }
-
-    const user = guild.members.cache.get(id)?.user;
-    if (!user) {
-      Logger.error(`Failed to resolve ${username} to a user.`);
-      return successfulBanChannelList;
-    }
-
-    const channelBanPromises = channels.reduce((acc, channel) => {
-      Logger.info(`Taking channel permissions away in ${channel.name}`);
-      acc.push(
-        channel.permissionOverwrites
-          .create(id, {
-            ViewChannel: false,
-            SendMessages: false,
-          })
-          .then(() => successfulBanChannelList.push(channel))
-          .catch(error => {
-            Logger.error(`Failed to adjust permissions for ${username} in ${channel.name}`, error);
-          })
-      );
-      return acc;
-    }, [] as Promise<void | number>[]);
-
-    await Promise.allSettled(channelBanPromises);
-
-    try {
-      await insertReport(
-        new UserReport(
-          guild,
-          id,
-          `Took channel permissions away in ${successfulBanChannelList.map(c => c.name).join(', ')}`
-        )
-      );
-    } catch (error) {
-      Logger.error('Failed to add report about channel ban.', error);
-    }
-
-    return successfulBanChannelList;
   }
 }
