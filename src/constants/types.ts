@@ -1,13 +1,3 @@
-export type Categories = {
-  info: string;
-  general: string;
-  dailyRoutine: string;
-  help: string;
-  specialTopics: string;
-  misc: string;
-  audioChannels: string;
-};
-
 export type Info = {
   announcements: string;
   welcome: string;
@@ -113,18 +103,4 @@ export type Channels = {
   admin: Admin;
   bot: Bot;
   blacklist: Blacklist;
-};
-
-export type Roles = {
-  Everyone: string;
-  Professor: string;
-  Unverifed: string;
-  NitroBooster: string;
-  TacoKing: string;
-  TeachingAssistant: string;
-  Moderator: string;
-  Admin: string;
-  Suspended: string;
-  Alumni: string;
-  GradStudent: string;
 };

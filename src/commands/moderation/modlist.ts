@@ -3,7 +3,7 @@ import { Command } from '..';
 import { Logger, reply, replyWithEmbed } from '../../utils';
 import { CommandDeferType } from '../command';
 import { guildService, moderationService } from '../../services';
-import { channels, roles } from '../../constants';
+import { channels, Roles } from '../../constants';
 
 export class ModListCommand implements Command {
   public name = 'modlist';
@@ -28,7 +28,7 @@ export class ModListCommand implements Command {
     }
 
     if (
-      member.roles.cache.find(role => role.name === roles.Moderator || role.name === roles.Admin)
+      member.roles.cache.find(role => role.name === Roles.Moderator || role.name === Roles.Admin)
     ) {
       await reply(interaction, 'You cannot use this command on a moderator');
       return;

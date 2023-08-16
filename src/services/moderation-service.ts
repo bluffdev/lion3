@@ -20,7 +20,7 @@ import {
   serialiseReportForMessage,
   UserReport,
 } from '../utils';
-import { channels, roles } from '../constants';
+import { channels, Roles } from '../constants';
 import { ObjectId } from 'mongodb';
 import { ModerationReportModel, ModerationWarningModel } from '../models';
 
@@ -257,7 +257,7 @@ export class ModerationService {
         member.roles.cache.filter(r => r.name !== '@everyone').map(r => member.roles.remove(r))
       );
 
-      const suspendedRole = guildService.getRole(roles.Suspended);
+      const suspendedRole = guildService.getRole(Roles.Suspended);
       await member.roles.add(suspendedRole);
       return `User has crossed threshold of ${this.SUSPEND_THRESH}, suspending user.\n`;
     } catch (e) {

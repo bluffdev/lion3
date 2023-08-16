@@ -1,4 +1,4 @@
-import { Channels } from './types';
+import { Channels } from './';
 
 export const channels: Channels = {
   info: {

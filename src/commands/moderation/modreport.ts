@@ -3,7 +3,7 @@ import { Command } from '..';
 import { Logger, reply, replyWithEmbed, UserReport } from '../../utils';
 import { CommandDeferType } from '../command';
 import { guildService, moderationService } from '../../services';
-import { channels, roles } from '../../constants';
+import { channels, Roles } from '../../constants';
 
 export class ModReportCommand implements Command {
   public name = 'modreport';
@@ -31,7 +31,7 @@ export class ModReportCommand implements Command {
     }
 
     if (
-      member.roles.cache.find(role => role.name === roles.Moderator || role.name === roles.Admin)
+      member.roles.cache.find(role => role.name === Roles.Moderator || role.name === Roles.Admin)
     ) {
       await reply(interaction, 'You cannot report a moderator');
       return;

@@ -8,7 +8,7 @@ import {
 } from 'discord.js';
 import { Logger, Maybe, UserReport } from '../utils';
 import { clientService, guildService } from './';
-import { roles } from '../constants';
+import { Roles } from '../constants';
 
 interface IReportPayload {
   embed: EmbedBuilder;
@@ -91,7 +91,7 @@ export class WarningService {
           deny: [PermissionsBitField.Flags.ViewChannel],
         },
         {
-          id: guildService.getRole(roles.Moderator),
+          id: guildService.getRole(Roles.Moderator),
           allow: [PermissionsBitField.Flags.ViewChannel],
         },
         {
