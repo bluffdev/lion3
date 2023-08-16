@@ -20,7 +20,7 @@ import {
   serialiseReportForMessage,
   UserReport,
 } from '../utils';
-import { channels, Roles } from '../constants';
+import { Channels, Roles } from '../constants';
 import { ObjectId } from 'mongodb';
 import { ModerationReportModel, ModerationWarningModel } from '../models';
 
@@ -37,7 +37,7 @@ export class ModerationService {
 
     const userOffenseChan = guildService
       .get()
-      .channels.cache.find(c => c.name === channels.staff.modCommands);
+      .channels.cache.find(c => c.name === Channels.Staff.ModCommands);
 
     if (!userOffenseChan) {
       Logger.error(`Could not file report for ${message}`);

@@ -1,7 +1,7 @@
 import { clientService } from './';
 import { Guild, GuildChannel, GuildEmoji, Role, User } from 'discord.js';
 import { Maybe } from '../utils';
-import { channels, Roles } from '../constants';
+import { Channels, Roles } from '../constants';
 
 export class GuildService {
   private guild: Guild;
@@ -10,8 +10,8 @@ export class GuildService {
   };
 
   private channelCache: Record<string, Maybe<GuildChannel>> = {
-    [channels.info.codeOfConduct]: undefined,
-    [channels.blacklist.verify]: undefined,
+    [Channels.Info.CodeOfConduct]: undefined,
+    [Channels.Blacklist.Verify]: undefined,
   };
 
   public setGuild(): void {

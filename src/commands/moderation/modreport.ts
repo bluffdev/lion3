@@ -3,11 +3,11 @@ import { Command } from '..';
 import { Logger, reply, replyWithEmbed, UserReport } from '../../utils';
 import { CommandDeferType } from '../command';
 import { guildService, moderationService } from '../../services';
-import { channels, Roles } from '../../constants';
+import { Channels, Roles } from '../../constants';
 
 export class ModReportCommand implements Command {
   public name = 'modreport';
-  public channels = [channels.staff.modCommands];
+  public channels = [Channels.Staff.ModCommands];
   public deferType = CommandDeferType.PUBLIC;
   public requireClientPerms: [];
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
