@@ -21,7 +21,6 @@ import {
   UserReport,
 } from '../utils';
 import { Channels, Roles } from '../constants';
-import { ObjectId } from 'mongodb';
 import { ModerationReportModel, ModerationWarningModel } from '../models';
 
 export class ModerationService {
@@ -104,14 +103,13 @@ export class ModerationService {
     return [message_id, user_id];
   }
 
-  // Files a report but does not warn subject
   public async fileReport(report: UserReport): Promise<EmbedBuilder> {
     await insertReport(report);
 
     const member = await guildService
       .get()
-      .members.fetch() // Cache all the members
-      .then(fetched => fetched.get(report.user));
+      .members.fetch()
+      .then(member => member.get(report.user));
 
     const embed = new EmbedBuilder()
       .setDescription(
@@ -126,14 +124,14 @@ export class ModerationService {
     return embed;
   }
 
-  // Files a report and warns the subject.
   public async fileWarning(report: UserReport): Promise<EmbedBuilder> {
     const member = await guildService
       .get()
-      .members.fetch() // Cache all the members
-      .then(fetched => fetched.get(report.user));
+      .members.fetch()
+      .then(member => member.get(report.user));
 
-    const fileReportResult: Maybe<ObjectId> = await insertReport(report);
+    const fileReportResult = await insertReport(report);
+
     await ModerationWarningModel.create({
       user: report.user,
       guild: report.guild,
@@ -149,11 +147,24 @@ export class ModerationService {
         date: -1,
       })) ?? [];
 
-    const actionResult = await this.checkNumberOfWarns(warnings, report, fileReportResult);
+    const numOfWarns = warnings.length;
+    let result: Promise<string> | string;
+
+    if (numOfWarns < this.KICK_THRESH) {
+      result = 'No further action was taken.';
+    } else if (numOfWarns < this.SUSPEND_THRESH) {
+      result = await this.kickMember(member);
+    } else if (numOfWarns < this.BAN_THRESH) {
+      result = await this.suspendMember(member);
+    } else {
+      result =
+        'User has been warned too many times. Escalating to permanent ban.\n' +
+        `Result: ${await this.fileBan(report, true)}`;
+    }
 
     const embed = new EmbedBuilder()
       .setDescription(
-        `Member: ${member.displayName}\nAction: Warn\nReason: ${report.description}\n Result: ${actionResult}`
+        `Member: ${member.displayName}\nAction: Warn\nReason: ${report.description}\n Result: ${result}`
       )
       .setTimestamp();
 
@@ -164,52 +175,7 @@ export class ModerationService {
     return embed;
   }
 
-  private async checkNumberOfWarns(
-    warnings: ModerationWarningDocument[],
-    report: UserReport,
-    fileReportResult: Maybe<ObjectId>
-  ): Promise<string> {
-    const member = guildService.get().members.cache.get(report.user);
-    if (!member) {
-      return 'Could not find user';
-    }
-
-    const numWarns = warnings.length;
-
-    // If below the minimum for punishment, return
-    if (numWarns < this.KICK_THRESH) {
-      return 'No further action was taken.';
-    }
-
-    if (numWarns >= this.KICK_THRESH && numWarns < this.SUSPEND_THRESH) {
-      return await this._kickUser(member);
-    }
-
-    // Suspend user
-    if (numWarns >= this.SUSPEND_THRESH && numWarns < this.BAN_THRESH) {
-      return await this._suspendMember(member);
-    }
-
-    return (
-      'User has been warned too many times. Escalating to permanent ban.\n' +
-      `Result: ${await this._fileBan(report, fileReportResult, true)}`
-    );
-  }
-
-  public async fileBan(report: UserReport, isPermanent: boolean): Promise<string> {
-    const res = await insertReport(report);
-    return await this._fileBan(report, res, isPermanent);
-  }
-
-  // Files a report and bans the subject.
-  private async _fileBan(
-    report: UserReport,
-    reportResult: Maybe<ObjectId>,
-    isPermanent: boolean
-  ): Promise<string> {
-    // if (await this.isUserCurrentlyBanned(report.guild, report.user)) {
-    //   return 'User is already banned.';
-    // }
+  private async fileBan(report: UserReport, isPermanent: boolean): Promise<string> {
     try {
       await guildService
         .get()
@@ -225,14 +191,14 @@ export class ModerationService {
 
     try {
       await guildService.get().members.ban(report.user, { reason: report.description });
-    } catch (e) {
-      return `Issue occurred trying to ban user. ${e}`;
+    } catch (error) {
+      return `Issue occurred trying to ban user. ${error}`;
     }
 
     return 'Banned User';
   }
 
-  private async _kickUser(member: GuildMember): Promise<string> {
+  private async kickMember(member: GuildMember): Promise<string> {
     await member.send(
       'You are being kicked for too many warnings\n' +
         `You currently have been warned ${this.KICK_THRESH} times.\n` +
@@ -250,23 +216,21 @@ export class ModerationService {
     return 'Kicked user';
   }
 
-  private async _suspendMember(member: GuildMember): Promise<string> {
+  private async suspendMember(member: GuildMember): Promise<string> {
     try {
-      // Remove all roles from user
-      await Promise.all(
-        member.roles.cache.filter(r => r.name !== '@everyone').map(r => member.roles.remove(r))
+      await Promise.allSettled(
+        member.roles.cache
+          .filter(role => role.name !== '@everyone')
+          .map(role => member.roles.remove(role))
       );
 
       const suspendedRole = guildService.getRole(Roles.Suspended);
       await member.roles.add(suspendedRole);
       return `User has crossed threshold of ${this.SUSPEND_THRESH}, suspending user.\n`;
-    } catch (e) {
-      return `Error suspending user ${e}`;
+    } catch (error) {
+      return `Error suspending user ${error}`;
     }
   }
-
-  // Finds any associated IDs
-  // Returns all Alt IDs and the one given
 
   private async getAllReportsForUser(guild: Guild, member: GuildMember): Promise<IReportSummary> {
     const reports: ModerationReportDocument[] = [
@@ -280,7 +244,6 @@ export class ModerationService {
     return { reports, warnings, banStatus };
   }
 
-  // Produces a report summary.
   public async getModerationSummary(
     guild: Guild,
     member: GuildMember
@@ -315,9 +278,6 @@ export class ModerationService {
       .setColor('#ff3300');
   }
 
-  // Bans the user from reading/sending
-  // in specified channels.
-  // Files a report about it.
   public async channelBan(
     guild: Guild,
     username: string,
@@ -353,7 +313,7 @@ export class ModerationService {
       return acc;
     }, [] as Promise<void | number>[]);
 
-    await Promise.all(channelBanPromises);
+    await Promise.allSettled(channelBanPromises);
 
     try {
       await insertReport(

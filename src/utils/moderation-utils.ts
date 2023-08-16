@@ -2,7 +2,6 @@ import { Guild, GuildMember, Snowflake } from 'discord.js';
 import { Document } from 'mongoose';
 import { ObjectId } from 'mongodb';
 import { ModerationReportModel } from '../models';
-import { Maybe } from './types';
 // Convert any input (tag or id) into an id
 export async function resolveToID(guild: Guild, tag: string): Promise<string | null> {
   try {
@@ -58,9 +57,9 @@ export function serialiseReportForMessage(report: UserReport): string {
   ).toLocaleString('en-US')}`;
 }
 
-export async function insertReport(report: UserReport): Promise<Maybe<ObjectId>> {
+export async function insertReport(report: UserReport): Promise<ObjectId> {
   const rep = await ModerationReportModel.create(report);
-  return rep?.id;
+  return rep.id;
 }
 
 export interface IReportSummary {

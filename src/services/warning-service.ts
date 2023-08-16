@@ -6,7 +6,7 @@ import {
   Snowflake,
   TextChannel,
 } from 'discord.js';
-import { Logger, Maybe, UserReport } from '../utils';
+import { Logger, UserReport } from '../utils';
 import { clientService, guildService } from './';
 import { Roles } from '../constants';
 
@@ -16,7 +16,7 @@ interface IReportPayload {
 }
 
 export class WarningService {
-  private _warnCategory: Maybe<CategoryChannel>;
+  private _warnCategory?: CategoryChannel;
   private _chanMap = new Map<Snowflake, GuildChannel>();
 
   public ACKNOWLEDGE_EMOJI = '👍';
