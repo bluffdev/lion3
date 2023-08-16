@@ -3,7 +3,7 @@ import { Command } from '..';
 import { Logger, reply, replyWithEmbed } from '../../utils';
 import { CommandDeferType } from '../command';
 import { guildService, moderationService } from '../../services';
-import { channels } from '../../constants';
+import { channels, roles } from '../../constants';
 
 export class ModListCommand implements Command {
   public name = 'modlist';
@@ -19,6 +19,18 @@ export class ModListCommand implements Command {
 
     if (!member) {
       await reply(interaction, 'Member not found');
+      return;
+    }
+
+    if (member.user.bot) {
+      await reply(interaction, 'You cannot use this command on a bot');
+      return;
+    }
+
+    if (
+      member.roles.cache.find(role => role.name === roles.Moderator || role.name === roles.Admin)
+    ) {
+      await reply(interaction, 'You cannot use this command on a moderator');
       return;
     }
 

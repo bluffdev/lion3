@@ -8,6 +8,7 @@ export const roles: Roles = {
   TacoKing: 'Taco King',
   TeachingAssistant: 'Teaching Assistant',
   Moderator: 'Moderator',
+  Admin: 'Admin',
   Suspended: 'Suspended',
   Alumni: 'Alumni',
   GradStudent: 'GradStudent',

@@ -1,5 +1,4 @@
 import {
-  AttachmentBuilder,
   CategoryChannel,
   EmbedBuilder,
   GuildChannel,
@@ -28,12 +27,23 @@ export class WarningService {
     try {
       if (rep.attachment) {
         await user.send({
-          content: `${message} Reason: ${rep.description}`,
-          files: [new AttachmentBuilder(rep.attachment)],
+          embeds: [
+            new EmbedBuilder()
+              .addFields(
+                { name: 'Message', value: message },
+                { name: 'Reason', value: rep.description }
+              )
+              .setImage(rep.attachment),
+          ],
         });
       } else {
         await user.send({
-          content: `${message} Reason: ${rep.description}`,
+          embeds: [
+            new EmbedBuilder().addFields(
+              { name: 'Message', value: message },
+              { name: 'Reason', value: rep.description }
+            ),
+          ],
         });
       }
     } catch (error) {

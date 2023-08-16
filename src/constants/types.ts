@@ -123,6 +123,7 @@ export type Roles = {
   TacoKing: string;
   TeachingAssistant: string;
   Moderator: string;
+  Admin: string;
   Suspended: string;
   Alumni: string;
   GradStudent: string;

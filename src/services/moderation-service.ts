@@ -25,8 +25,6 @@ import { ObjectId } from 'mongodb';
 import { ModerationReportModel, ModerationWarningModel } from '../models';
 
 export class ModerationService {
-  private readonly QUICK_WARNS_THRESH = 3;
-  private readonly QUICK_WARNS_TIMEFRAME = 14;
   private readonly KICK_THRESH = 3;
   private readonly SUSPEND_THRESH = 4;
   private readonly BAN_THRESH = 5;
@@ -107,29 +105,33 @@ export class ModerationService {
   }
 
   // Files a report but does not warn subject
-  public async fileReport(report: UserReport): Promise<string> {
-    const res = await insertReport(report);
-    if (res) {
-      return `Added report: ${serialiseReportForMessage(report)}`;
-    } else {
-      return 'Could not insert report.';
-    }
-  }
+  public async fileReport(report: UserReport): Promise<EmbedBuilder> {
+    await insertReport(report);
 
-  // Files a report and warns the subject.
-  public async fileWarning(report: UserReport): Promise<string> {
     const member = await guildService
       .get()
       .members.fetch() // Cache all the members
       .then(fetched => fetched.get(report.user));
 
-    if (!member) {
-      return 'Member not found';
+    const embed = new EmbedBuilder()
+      .setDescription(
+        `Member: ${member.displayName}\nAction: Report\nReason: ${report.description}\n`
+      )
+      .setTimestamp();
+
+    if (report.attachment) {
+      embed.setImage(report.attachment);
     }
 
-    if (member?.user.bot) {
-      return 'You cannot warn a bot.';
-    }
+    return embed;
+  }
+
+  // Files a report and warns the subject.
+  public async fileWarning(report: UserReport): Promise<EmbedBuilder> {
+    const member = await guildService
+      .get()
+      .members.fetch() // Cache all the members
+      .then(fetched => fetched.get(report.user));
 
     const fileReportResult: Maybe<ObjectId> = await insertReport(report);
     await ModerationWarningModel.create({
@@ -147,16 +149,22 @@ export class ModerationService {
         date: -1,
       })) ?? [];
 
-    const tempBanResult = await this._checkQuickWarns(warnings, report, fileReportResult);
-    if (tempBanResult) {
-      return tempBanResult;
+    const actionResult = await this.checkNumberOfWarns(warnings, report, fileReportResult);
+
+    const embed = new EmbedBuilder()
+      .setDescription(
+        `Member: ${member.displayName}\nAction: Warn\nReason: ${report.description}\n Result: ${actionResult}`
+      )
+      .setTimestamp();
+
+    if (report.attachment) {
+      embed.setImage(report.attachment);
     }
 
-    const actionResult = await this._checkNumberOfWarns(warnings, report, fileReportResult);
-    return `User warned: ${serialiseReportForMessage(report)}\n${actionResult}`;
+    return embed;
   }
 
-  private async _checkNumberOfWarns(
+  private async checkNumberOfWarns(
     warnings: ModerationWarningDocument[],
     report: UserReport,
     fileReportResult: Maybe<ObjectId>
@@ -186,30 +194,6 @@ export class ModerationService {
       'User has been warned too many times. Escalating to permanent ban.\n' +
       `Result: ${await this._fileBan(report, fileReportResult, true)}`
     );
-  }
-
-  private async _checkQuickWarns(
-    warns: ModerationWarningDocument[],
-    report: UserReport,
-    fileReportResult: Maybe<ObjectId>
-  ): Promise<string | false> {
-    const recentWarnings = warns.slice(0, this.QUICK_WARNS_THRESH);
-    const beginningOfWarningRange = new Date();
-    const warningRange = this.QUICK_WARNS_TIMEFRAME;
-    beginningOfWarningRange.setDate(beginningOfWarningRange.getDate() - warningRange);
-
-    const shouldTempBan =
-      recentWarnings.length >= this.QUICK_WARNS_THRESH &&
-      recentWarnings.reduce((acc, x) => acc && x.date >= beginningOfWarningRange, true);
-
-    if (shouldTempBan) {
-      return (
-        `User has been warned too many times within ${this.QUICK_WARNS_TIMEFRAME} days. Escalating to temp ban.\n` +
-        `Result: ${await this._fileBan(report, fileReportResult, false)}`
-      );
-    }
-
-    return false;
   }
 
   public async fileBan(report: UserReport, isPermanent: boolean): Promise<string> {
