@@ -3,11 +3,11 @@ import { Command } from '..';
 import { Logger, reply, replyWithEmbed } from '../../utils';
 import { CommandDeferType } from '../command';
 import { guildService, moderationService } from '../../services';
-import { channels } from '../../constants';
+import { Channels, Roles } from '../../constants';
 
 export class ModListCommand implements Command {
   public name = 'modlist';
-  public channels = [channels.staff.modCommands];
+  public channels = [Channels.Staff.ModCommands];
   public deferType = CommandDeferType.PUBLIC;
   public requireClientPerms: [];
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -19,6 +19,18 @@ export class ModListCommand implements Command {
 
     if (!member) {
       await reply(interaction, 'Member not found');
+      return;
+    }
+
+    if (member.user.bot) {
+      await reply(interaction, 'You cannot use this command on a bot');
+      return;
+    }
+
+    if (
+      member.roles.cache.find(role => role.name === Roles.Moderator || role.name === Roles.Admin)
+    ) {
+      await reply(interaction, 'You cannot use this command on a moderator');
       return;
     }
 
@@ -34,7 +46,7 @@ export class ModListCommand implements Command {
         Logger.error('Incorrect type in reply for list command');
       }
     } catch (error) {
-      Logger.error('Failed to execute modreport command', error);
+      Logger.error('Failed to execute modlist command', error);
     }
   }
 }

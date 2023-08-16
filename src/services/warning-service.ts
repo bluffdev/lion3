@@ -1,5 +1,4 @@
 import {
-  AttachmentBuilder,
   CategoryChannel,
   EmbedBuilder,
   GuildChannel,
@@ -7,9 +6,9 @@ import {
   Snowflake,
   TextChannel,
 } from 'discord.js';
-import { Logger, Maybe, UserReport } from '../utils';
+import { Logger, UserReport } from '../utils';
 import { clientService, guildService } from './';
-import { roles } from '../constants';
+import { Roles } from '../constants';
 
 interface IReportPayload {
   embed: EmbedBuilder;
@@ -17,7 +16,7 @@ interface IReportPayload {
 }
 
 export class WarningService {
-  private _warnCategory: Maybe<CategoryChannel>;
+  private _warnCategory?: CategoryChannel;
   private _chanMap = new Map<Snowflake, GuildChannel>();
 
   public ACKNOWLEDGE_EMOJI = '👍';
@@ -28,12 +27,23 @@ export class WarningService {
     try {
       if (rep.attachment) {
         await user.send({
-          content: `${message} Reason: ${rep.description}`,
-          files: [new AttachmentBuilder(rep.attachment)],
+          embeds: [
+            new EmbedBuilder()
+              .addFields(
+                { name: 'Message', value: message },
+                { name: 'Reason', value: rep.description }
+              )
+              .setImage(rep.attachment),
+          ],
         });
       } else {
         await user.send({
-          content: `${message} Reason: ${rep.description}`,
+          embeds: [
+            new EmbedBuilder().addFields(
+              { name: 'Message', value: message },
+              { name: 'Reason', value: rep.description }
+            ),
+          ],
         });
       }
     } catch (error) {
@@ -81,7 +91,7 @@ export class WarningService {
           deny: [PermissionsBitField.Flags.ViewChannel],
         },
         {
-          id: guildService.getRole(roles.Moderator),
+          id: guildService.getRole(Roles.Moderator),
           allow: [PermissionsBitField.Flags.ViewChannel],
         },
         {

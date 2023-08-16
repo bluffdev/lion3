@@ -2,8 +2,7 @@ import { Guild, GuildMember, Snowflake } from 'discord.js';
 import { Document } from 'mongoose';
 import { ObjectId } from 'mongodb';
 import { ModerationReportModel } from '../models';
-import { Maybe } from './types';
-// Convert any input (tag or id) into an id
+
 export async function resolveToID(guild: Guild, tag: string): Promise<string | null> {
   try {
     const id = (await guild.members.fetch()).find(gm => gm.user.tag === tag)?.user.id;
@@ -41,16 +40,6 @@ export async function resolveUser(guild: Guild, tag: string): Promise<GuildMembe
   return guild.members.cache.get(id);
 }
 
-export function validateUser(tag: string): boolean {
-  const regex = /^(([^#]+#\d{4})|\d{17,18})$/;
-  return regex.test(tag);
-}
-
-export function isID(id: string): boolean {
-  const regex = /\d{17,18}/;
-  return regex.test(id);
-}
-
 export function serialiseReportForMessage(report: UserReport): string {
   const attachments = report.attachment || 'no attachment';
   return `\`${report.description ?? 'no description'}\`: [${attachments}] at ${new Date(
@@ -58,9 +47,9 @@ export function serialiseReportForMessage(report: UserReport): string {
   ).toLocaleString('en-US')}`;
 }
 
-export async function insertReport(report: UserReport): Promise<Maybe<ObjectId>> {
+export async function insertReport(report: UserReport): Promise<ObjectId> {
   const rep = await ModerationReportModel.create(report);
-  return rep?.id;
+  return rep.id;
 }
 
 export interface IReportSummary {
@@ -98,12 +87,6 @@ export interface IModerationWarning {
   date: Date;
   reportId?: ObjectId;
   _id: ObjectId;
-}
-
-export interface IModReportRequest {
-  subCommand: string;
-  givenHandle: string;
-  description: string;
 }
 
 export type ModerationWarningDocument = IModerationWarning & Document;

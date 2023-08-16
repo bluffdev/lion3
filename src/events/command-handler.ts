@@ -7,6 +7,7 @@ import {
 import { Command } from '../commands/command';
 import { EventHandler } from './';
 import { findCommand, Logger, reply } from '../utils';
+import { Channels } from '../constants';
 
 export class CommandHandler implements EventHandler {
   constructor(public commands: Command[]) {}
@@ -16,7 +17,23 @@ export class CommandHandler implements EventHandler {
 
     if (!command) {
       Logger.error(`Add command to commands array ${intr.commandName}`);
+      await reply(
+        intr as ChatInputCommandInteraction,
+        'This command is not listed in the commands array',
+        true
+      );
       return;
+    }
+
+    if (command.name === 'anonreport' && intr.channel) {
+      if (intr.channel.name !== Channels.Bot.BotCommands) {
+        await reply(
+          intr as ChatInputCommandInteraction,
+          'This command can only be used in DMs with Lion',
+          true
+        );
+        return;
+      }
     }
 
     const allowedChannels = command.channels;

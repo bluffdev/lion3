@@ -1,13 +1,13 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import { Command } from '..';
-import { Logger, reply, UserReport } from '../../utils';
+import { Logger, reply, replyWithEmbed, UserReport } from '../../utils';
 import { CommandDeferType } from '../command';
 import { guildService, moderationService } from '../../services';
-import { channels } from '../../constants';
+import { Channels, Roles } from '../../constants';
 
 export class ModReportCommand implements Command {
   public name = 'modreport';
-  public channels = [channels.staff.modCommands];
+  public channels = [Channels.Staff.ModCommands];
   public deferType = CommandDeferType.PUBLIC;
   public requireClientPerms: [];
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -25,6 +25,18 @@ export class ModReportCommand implements Command {
       return;
     }
 
+    if (member.user.bot) {
+      await reply(interaction, 'You cannot report a bot');
+      return;
+    }
+
+    if (
+      member.roles.cache.find(role => role.name === Roles.Moderator || role.name === Roles.Admin)
+    ) {
+      await reply(interaction, 'You cannot report a moderator');
+      return;
+    }
+
     try {
       const newReport = new UserReport(
         guildService.get(),
@@ -38,9 +50,9 @@ export class ModReportCommand implements Command {
       }
 
       if (issueWarn) {
-        await reply(interaction, await moderationService.fileWarning(newReport));
+        await replyWithEmbed(interaction, await moderationService.fileWarning(newReport));
       } else {
-        await reply(interaction, await moderationService.fileReport(newReport));
+        await replyWithEmbed(interaction, await moderationService.fileReport(newReport));
       }
     } catch (error) {
       Logger.error('Failed to execute modreport command', error);

@@ -62,4 +62,61 @@ export const CommandMetadata: {
       },
     ],
   },
+  ANONREPORT: {
+    type: ApplicationCommandType.ChatInput,
+    name: 'anonreport',
+    description: 'Sends an anonymous report to server moderators',
+    dm_permission: true,
+    default_member_permissions: undefined,
+    options: [
+      {
+        name: 'anonymous',
+        description: 'Select true if you do not want lion to log your user id',
+        type: ApplicationCommandOptionType.Boolean,
+        required: true,
+      },
+      {
+        name: 'description',
+        description: 'Reason for report',
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: 'screenshot',
+        description: 'Screenshot of offense',
+        type: ApplicationCommandOptionType.Attachment,
+        required: false,
+      },
+    ],
+  },
+  REGISTER: {
+    type: ApplicationCommandType.ChatInput,
+    name: 'register',
+    description: 'Register for a class',
+    dm_permission: false,
+    default_member_permissions: undefined,
+    options: [
+      {
+        name: 'class',
+        description: 'Enter class to register for',
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+    ],
+  },
+  UNREGISTER: {
+    type: ApplicationCommandType.ChatInput,
+    name: 'unregister',
+    description: 'Unregister from a class',
+    dm_permission: false,
+    default_member_permissions: undefined,
+    options: [
+      {
+        name: 'class',
+        description: 'Enter class to unregister from',
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+    ],
+  },
 };
