@@ -62,4 +62,31 @@ export const CommandMetadata: {
       },
     ],
   },
+  ANONREPORT: {
+    type: ApplicationCommandType.ChatInput,
+    name: 'anonreport',
+    description: 'Sends an anonymous report to server moderators',
+    dm_permission: true,
+    default_member_permissions: undefined,
+    options: [
+      {
+        name: 'anonymous',
+        description: 'Select true if you do not want lion to log your user id',
+        type: ApplicationCommandOptionType.Boolean,
+        required: true,
+      },
+      {
+        name: 'description',
+        description: 'Reason for report',
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: 'screenshot',
+        description: 'Screenshot of offense',
+        type: ApplicationCommandOptionType.Attachment,
+        required: false,
+      },
+    ],
+  },
 };

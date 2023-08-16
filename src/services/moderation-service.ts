@@ -1,18 +1,18 @@
 import {
+  Attachment,
   EmbedBuilder,
   Guild,
   GuildChannel,
   GuildMember,
-  Message,
   TextChannel,
+  ThreadAutoArchiveDuration,
   User,
 } from 'discord.js';
-import { clientService, guildService, warningService } from '.';
+import { guildService, warningService } from '.';
 import {
   insertReport,
   IReportSummary,
   Logger,
-  Maybe,
   ModerationReportDocument,
   ModerationWarningDocument,
   resolveToID,
@@ -28,79 +28,39 @@ export class ModerationService {
   private readonly SUSPEND_THRESH = 4;
   private readonly BAN_THRESH = 5;
 
-  public async fileAnonReportWithTicketId(ticket_id: string, message: Message): Promise<string> {
-    // overwrite with our user to protect reporter
-    message.author = clientService.user as User;
-
-    Logger.info(`Filing report with ticket_id ${ticket_id}`);
-
-    const userOffenseChan = guildService
+  public async fileAnonReport(
+    user: User,
+    anonymous: boolean,
+    message: string,
+    screenshot?: Attachment
+  ): Promise<EmbedBuilder> {
+    const modCommandsChannel = guildService
       .get()
-      .channels.cache.find(c => c.name === Channels.Staff.ModCommands);
+      .channels.cache.find(c => c.name === Channels.Staff.ModCommands) as TextChannel;
 
-    if (!userOffenseChan) {
-      Logger.error(`Could not file report for ${message}`);
-      return undefined;
+    const embed = new EmbedBuilder().setDescription(`**Description:** ${message}`);
+
+    if (!anonymous) {
+      embed.setAuthor({ name: `${user.username}`, iconURL: user.displayAvatarURL() });
     }
 
-    await (userOffenseChan as TextChannel)
-      .send({
-        content: `:rotating_light::rotating_light: ANON REPORT Ticket ${ticket_id} :rotating_light::rotating_light:\n ${message.content}`,
-        files: message.attachments.map(a => a.url),
-      })
-      .catch(error => Logger.error('Error while filing anonreport', error));
-
-    return ticket_id;
-  }
-
-  public fileAnonReport(message: Message): Promise<Maybe<string>> {
-    return this.fileAnonReportWithTicketId(this.generateTicketId(message), message);
-  }
-
-  public async respondToAnonReport(ticket_id: string, message: Message): Promise<Maybe<string>> {
-    const decoded = this._tryDecodeTicketId(ticket_id);
-
-    if (!decoded) {
-      return undefined;
+    if (screenshot) {
+      embed.setImage(screenshot.url);
     }
 
-    const [, user_id] = decoded;
-    const user = guildService.get().members.cache.get(user_id);
+    try {
+      const reportThread = await modCommandsChannel.threads.create({
+        name: 'ANON REPORT',
+        autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
+        reason: 'Created anon report thread',
+      });
 
-    if (!user) {
-      Logger.error(`respondToAnonReport: Could not resolve ${user_id} to a Guild member.`);
-      return undefined;
+      await reportThread.send({ embeds: [embed] });
+
+      return embed;
+    } catch (error) {
+      Logger.error('Error logging anonreport in mod_commands', error);
     }
-
-    await user
-      .send({
-        content: `Response to your anonymous report ticket ${ticket_id}:\n ${message.content}`,
-        files: message.attachments.map(a => a.url),
-      })
-      .catch(error => Logger.error('Failed to send anonreport response', error));
-
-    return ticket_id;
-  }
-
-  public generateTicketId(message: Message): string {
-    return `${message.id}x${message.author?.id}`;
-  }
-
-  public isTicketId(maybe_ticket_id: string): boolean {
-    return !!this._tryDecodeTicketId(maybe_ticket_id);
-  }
-
-  private _tryDecodeTicketId(ticket_id: string): Maybe<string[]> {
-    const _REPORT_ID = /([^x]+)x([0-9]+)/;
-    const match_report_id = ticket_id.match(_REPORT_ID);
-
-    if (!match_report_id) {
-      return undefined;
-    }
-
-    const [, message_id, user_id] = match_report_id;
-
-    return [message_id, user_id];
   }
 
   public async fileReport(report: UserReport): Promise<EmbedBuilder> {
