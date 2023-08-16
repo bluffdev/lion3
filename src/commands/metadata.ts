@@ -89,4 +89,34 @@ export const CommandMetadata: {
       },
     ],
   },
+  REGISTER: {
+    type: ApplicationCommandType.ChatInput,
+    name: 'register',
+    description: 'Register for a class',
+    dm_permission: false,
+    default_member_permissions: undefined,
+    options: [
+      {
+        name: 'class',
+        description: 'Enter class to register for',
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+    ],
+  },
+  UNREGISTER: {
+    type: ApplicationCommandType.ChatInput,
+    name: 'unregister',
+    description: 'Unregister from a class',
+    dm_permission: false,
+    default_member_permissions: undefined,
+    options: [
+      {
+        name: 'class',
+        description: 'Enter class to unregister from',
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+    ],
+  },
 };

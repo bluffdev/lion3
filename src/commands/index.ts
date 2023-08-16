@@ -1,4 +1,4 @@
-// import { RegisterCommand } from './channels';
+import { RegisterCommand, UnRegisterCommand } from './channels';
 import { Command } from './command';
 import { AnonReportCommand, ModListCommand, ModReportCommand, PingCommand } from './moderation';
 
@@ -10,4 +10,6 @@ export const commands: Command[] = [
   new ModListCommand(),
   new ModReportCommand(),
   new AnonReportCommand(),
+  new RegisterCommand(),
+  new UnRegisterCommand(),
 ];

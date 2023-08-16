@@ -7,7 +7,7 @@ import {
 import { connectToDatabase, env, Logger } from './utils';
 import { CommandMetadata, commands } from './commands';
 import { CommandHandler } from './events/command-handler';
-import { clientService, commandDeploymentService, guildService } from './services';
+import { classService, clientService, commandDeploymentService, guildService } from './services';
 
 export class Bot {
   constructor(private commandHandler: CommandHandler) {
@@ -53,6 +53,7 @@ export class Bot {
 
   private async ready(): Promise<void> {
     guildService.setGuild();
+    classService.addClasses();
     Logger.info('Client is ready');
 
     const commandData = clientService.application.commands.cache;

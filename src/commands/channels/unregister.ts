@@ -4,8 +4,8 @@ import { Logger, reply } from '../../utils';
 import { Channels } from '../../constants';
 import { classService } from '../../services';
 
-export class RegisterCommand implements Command {
-  public name = 'register';
+export class UnRegisterCommand implements Command {
+  public name = 'unregister';
   public channels = [Channels.Bot.BotCommands];
   public deferType = CommandDeferType.HIDDEN;
   public requireClientPerms = [];
@@ -19,15 +19,15 @@ export class RegisterCommand implements Command {
     }
 
     try {
-      const response = await classService.register(request);
+      const response = await classService.unregister(request);
 
       if (response) {
-        await reply(interaction, `Registered for ${className}`);
+        await reply(interaction, `Unregistered for ${className}`);
       } else {
-        await reply(interaction, `You are already registered in ${className}`);
+        await reply(interaction, `You are not registered in ${className}`);
       }
     } catch (error) {
-      Logger.error('Failed to execute register command', error);
+      Logger.error('Failed to execute unregister command', error);
     }
   }
 }
