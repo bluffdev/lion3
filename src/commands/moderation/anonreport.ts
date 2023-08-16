@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import { Command, CommandDeferType } from '../command';
-import { replyWithEmbed } from '../../utils';
+import { Logger, replyWithEmbed } from '../../utils';
 import { moderationService } from '../../services';
 import { Channels } from '../../constants';
 
@@ -19,10 +19,15 @@ export class AnonReportCommand implements Command {
       description,
       screenshot
     );
-    await replyWithEmbed(
-      interaction,
-      messageEmbed.setTitle('Your report has been recorded'),
-      interaction.channel.name === Channels.Bot.BotCommands
-    );
+
+    try {
+      await replyWithEmbed(
+        interaction,
+        messageEmbed.setTitle('Your report has been recorded'),
+        interaction.channel.name === Channels.Bot.BotCommands
+      );
+    } catch (error) {
+      Logger.error('Failed to send reply for anonreport command', error);
+    }
   }
 }

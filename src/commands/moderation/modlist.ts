@@ -46,7 +46,7 @@ export class ModListCommand implements Command {
         Logger.error('Incorrect type in reply for list command');
       }
     } catch (error) {
-      Logger.error('Failed to execute modreport command', error);
+      Logger.error('Failed to execute modlist command', error);
     }
   }
 }
