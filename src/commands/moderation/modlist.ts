@@ -1,15 +1,16 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { Command } from '..';
 import { Logger, reply, replyWithEmbed } from '../../utils';
-import { CommandDeferType } from '../command';
 import { guildService, moderationService } from '../../services';
-import { Channels, Roles } from '../../constants';
+import { Channels, moderator, Roles } from '../../constants';
 
-export class ModListCommand implements Command {
+export default class ModListCommand implements Command {
+  public type = ApplicationCommandType.ChatInput;
   public name = 'modlist';
+  public description = '';
+  public dmPermission = false;
+  public defaultMemberPermissions = moderator;
   public channels = [Channels.Staff.ModCommands];
-  public deferType = CommandDeferType.PUBLIC;
-  public requireClientPerms: [];
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const user = interaction.options.getString('tag');
 

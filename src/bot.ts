@@ -5,14 +5,17 @@ import {
   Interaction,
 } from 'discord.js';
 import { connectToDatabase, env, Logger } from './utils';
-import { CommandMetadata, commands } from './commands';
+import { Command, CommandMetadata, commands } from './commands';
 import { CommandHandler } from './events/command-handler';
 import { classService, clientService, commandDeploymentService, guildService } from './services';
+import path from 'path';
+import fs from 'fs';
 
 export class Bot {
   constructor(private commandHandler: CommandHandler) {
     connectToDatabase(env.MONGO_URL);
     this.registerSlashCommands();
+    this.loadCommands();
     this.registerListeners();
     this.login(env.CLIENT_TOKEN);
   }
@@ -24,6 +27,29 @@ export class Bot {
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  public loadCommands(): void {
+    const directories = ['/commands/channels', '/commands/moderation'];
+    const commands: Command[] = [];
+
+    for (const dir of directories) {
+      const curr = path.join(__dirname, dir);
+      try {
+        const files = fs.readdirSync(curr);
+        for (const file of files) {
+          if (file.endsWith('.ts') || file.endsWith('.js')) {
+            const commandImport = require(path.join(curr, file));
+            const { default: commandClass } = commandImport;
+            commands.push(new commandClass());
+          }
+        }
+      } catch (error) {
+        console.error(`Error reading directory ${dir}`, error);
+      }
+    }
+
+    clientService.commands = commands;
   }
 
   private registerListeners(): void {

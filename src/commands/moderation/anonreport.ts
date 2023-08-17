@@ -1,13 +1,14 @@
-import { ChatInputCommandInteraction } from 'discord.js';
-import { Command, CommandDeferType } from '../command';
+import { ApplicationCommandType, ChatInputCommandInteraction } from 'discord.js';
+import { Command } from '../command';
 import { Logger, replyWithEmbed } from '../../utils';
 import { moderationService } from '../../services';
 import { Channels } from '../../constants';
 
-export class AnonReportCommand implements Command {
-  name = 'anonreport';
-  deferType = CommandDeferType.PUBLIC;
-  requireClientPerms = [];
+export default class AnonReportCommand implements Command {
+  public type = ApplicationCommandType.ChatInput;
+  public name = 'anonreport';
+  public description = 'Sends an anonymous report to server moderators';
+  public dmPermission = true;
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const anonymous = interaction.options.getBoolean('anonymous');
     const description = interaction.options.getString('description');

@@ -1,14 +1,15 @@
-import { ChatInputCommandInteraction } from 'discord.js';
-import { Command, CommandDeferType } from '../command';
+import { ApplicationCommandType, ChatInputCommandInteraction } from 'discord.js';
+import { Command } from '../command';
 import { Logger, reply } from '../../utils';
 import { Channels } from '../../constants';
 import { classService } from '../../services';
 
-export class UnRegisterCommand implements Command {
+export default class UnRegisterCommand implements Command {
+  public type = ApplicationCommandType.ChatInput;
   public name = 'unregister';
+  public description = 'Unregister from a class';
+  public dmPermission = false;
   public channels = [Channels.Bot.BotCommands];
-  public deferType = CommandDeferType.HIDDEN;
-  public requireClientPerms = [];
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const className = interaction.options.getString('class');
 
