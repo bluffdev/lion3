@@ -58,6 +58,7 @@ export class ModerationService {
       return embed;
     } catch (error) {
       Logger.error('Error logging anonreport in mod_commands', error);
+      return new EmbedBuilder();
     }
   }
 
@@ -71,7 +72,7 @@ export class ModerationService {
 
     const embed = new EmbedBuilder()
       .setDescription(
-        `Member: ${member.displayName}\nAction: Report\nReason: ${report.description}\n`
+        `Member: ${member?.displayName}\nAction: Report\nReason: ${report.description}\n`
       )
       .setTimestamp();
 
@@ -87,6 +88,11 @@ export class ModerationService {
       .get()
       .members.fetch()
       .then(member => member.get(report.user));
+
+    if (!member) {
+      Logger.error('Could not find member in fileWarning method');
+      return new EmbedBuilder();
+    }
 
     const fileReportResult = await insertReport(report);
 
@@ -183,6 +189,12 @@ export class ModerationService {
       );
 
       const suspendedRole = guildService.getRole(Roles.Suspended);
+
+      if (!suspendedRole) {
+        Logger.error('Error finding suspended role');
+        return 'Suspended role does not exist';
+      }
+
       await member.roles.add(suspendedRole);
       return `User has crossed threshold of ${this.SUSPEND_THRESH}, suspending user.\n`;
     } catch (error) {

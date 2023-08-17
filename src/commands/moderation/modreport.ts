@@ -48,6 +48,12 @@ export default class ModReportCommand implements Command {
     const description = interaction.options.getString('description');
     const attachment = interaction.options.getAttachment('screenshot', false);
 
+    if (!description) {
+      Logger.error('Error with description option');
+      await reply(interaction, `Failed to execute ${this.name} command`);
+      return;
+    }
+
     const member = (await guildService.get().members.fetch()).find(
       member => member.displayName === user
     );
@@ -87,7 +93,7 @@ export default class ModReportCommand implements Command {
         await replyWithEmbed(interaction, await moderationService.fileReport(newReport));
       }
     } catch (error) {
-      Logger.error('Failed to execute modreport command', error);
+      Logger.error(`Failed to execute ${this.name} command`, error);
     }
   }
 }

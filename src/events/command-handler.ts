@@ -3,6 +3,7 @@ import {
   CacheType,
   ChatInputCommandInteraction,
   CommandInteraction,
+  TextChannel,
 } from 'discord.js';
 import { EventHandler } from './';
 import { findCommand, Logger, reply } from '../utils';
@@ -23,7 +24,7 @@ export class CommandHandler implements EventHandler {
       return;
     }
 
-    if (command.name === 'anonreport' && intr.channel) {
+    if (command.name === 'anonreport' && intr.channel instanceof TextChannel) {
       if (intr.channel.name !== Channels.Bot.BotCommands) {
         await reply(
           intr as ChatInputCommandInteraction,
@@ -36,7 +37,7 @@ export class CommandHandler implements EventHandler {
 
     const allowedChannels = command.channels;
 
-    if (allowedChannels) {
+    if (allowedChannels && intr.channel instanceof TextChannel) {
       const channel = intr.channel.name;
       if (!allowedChannels.includes(channel)) {
         await reply(
