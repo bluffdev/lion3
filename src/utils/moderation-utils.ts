@@ -30,11 +30,11 @@ export async function resolveToID(guild: Guild, tag: string): Promise<string | n
 }
 
 // Takes in an id or tag and finds the member
-export async function resolveUser(guild: Guild, tag: string): Promise<GuildMember | null> {
+export async function resolveUser(guild: Guild, tag: string): Promise<GuildMember | undefined> {
   // Convert to ID to use for finding the GuildMember
   const id = await resolveToID(guild, tag);
   if (!id) {
-    return null;
+    return;
   }
 
   return guild.members.cache.get(id);

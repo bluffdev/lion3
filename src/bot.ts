@@ -41,7 +41,7 @@ export class Bot {
     try {
       await commandDeploymentService.registerAllCommands(metadata);
     } catch (error) {
-      throw new Error(error);
+      Logger.error('Failed to deploy commands', error);
     }
   }
 
@@ -100,11 +100,11 @@ export class Bot {
     classService.addClasses();
     Logger.info('Client is ready');
 
-    const commandData = clientService.application.commands.cache;
+    const commandData = clientService.application?.commands.cache;
 
     for (const cmd of clientService.commands) {
       if (cmd.channels) {
-        const command = commandData.find(cmd => cmd.name === cmd.name);
+        const command = commandData?.find(cmd => cmd.name === cmd.name);
 
         if (command) {
           const permissions = cmd.channels.map(channelId => ({
@@ -113,9 +113,9 @@ export class Bot {
             permission: true,
           }));
 
-          await clientService.guilds.cache
+          clientService.guilds.cache
             .first()
-            .commands.permissions.add({ token: env.ClIENT_ID, command: command.id, permissions });
+            ?.commands.permissions.add({ token: env.ClIENT_ID, command: command.id, permissions });
         }
       }
     }

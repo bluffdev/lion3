@@ -3,9 +3,10 @@ import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
   ChatInputCommandInteraction,
+  TextChannel,
 } from 'discord.js';
 import { Command } from '../command';
-import { Logger, replyWithEmbed } from '../../utils';
+import { Logger, reply, replyWithEmbed } from '../../utils';
 import { moderationService } from '../../services';
 import { Channels } from '../../constants';
 
@@ -39,6 +40,12 @@ export default class AnonReportCommand implements Command {
     const description = interaction.options.getString('description');
     const screenshot = interaction.options.getAttachment('screenshot');
 
+    if (!anonymous || !description || screenshot === null) {
+      Logger.error('Error with options');
+      await reply(interaction, `Failed to execute ${this.name} command`);
+      return;
+    }
+
     const messageEmbed = await moderationService.fileAnonReport(
       interaction.user,
       anonymous,
@@ -47,10 +54,16 @@ export default class AnonReportCommand implements Command {
     );
 
     try {
+      let hidden = false;
+
+      if (interaction.channel instanceof TextChannel) {
+        hidden = interaction.channel.name === Channels.Bot.BotCommands;
+      }
+
       await replyWithEmbed(
         interaction,
         messageEmbed.setTitle('Your report has been recorded'),
-        interaction.channel.name === Channels.Bot.BotCommands
+        hidden
       );
     } catch (error) {
       Logger.error('Failed to send reply for anonreport command', error);

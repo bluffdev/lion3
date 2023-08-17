@@ -3,7 +3,7 @@ import { Guild, GuildChannel, GuildEmoji, Role, User } from 'discord.js';
 import { Channels, Roles } from '../constants';
 
 export class GuildService {
-  private guild: Guild;
+  private guild!: Guild;
   private roleCache: Record<string, Role | undefined> = {
     [Roles.Unverifed]: undefined,
   };
@@ -14,7 +14,10 @@ export class GuildService {
   };
 
   public setGuild(): void {
-    this.guild = clientService.guilds.cache.first();
+    const guild = clientService.guilds.cache.first();
+    if (guild) {
+      this.guild = guild;
+    }
   }
 
   public get(): Guild {
@@ -37,7 +40,7 @@ export class GuildService {
     }
   }
 
-  public getRole(roleName: string): Role {
+  public getRole(roleName: string): Role | undefined {
     if (!this.roleCache[roleName]) {
       this.roleCache[roleName] = this.get()
         .roles.cache.filter(r => r.name === roleName)
@@ -47,7 +50,7 @@ export class GuildService {
     return this.roleCache[roleName];
   }
 
-  public getChannel(chanName: string): GuildChannel {
+  public getChannel(chanName: string): GuildChannel | undefined {
     if (!this.channelCache[chanName]) {
       this.channelCache[chanName] = this.get()
         .channels.cache.filter(c => c.name === chanName)

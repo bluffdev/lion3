@@ -26,10 +26,18 @@ export default class UnRegisterCommand implements Command {
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const className = interaction.options.getString('class');
 
+    if (!className) {
+      Logger.error('Error retrieving class name option');
+      await reply(interaction, `Failed to execute ${this.name} command`);
+      return;
+    }
+
     const request = classService.buildRequest(interaction.user, [className]);
 
     if (!request) {
       Logger.error('Error building request for register command');
+      await reply(interaction, `Failed to execute ${this.name} command`);
+      return;
     }
 
     try {

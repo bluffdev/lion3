@@ -39,6 +39,12 @@ export class ClassService {
 
   public async register(request: IClassRequest): Promise<boolean> {
     const { author, className } = request;
+
+    if (!className) {
+      Logger.error('Request does not have a class name');
+      return false;
+    }
+
     try {
       const classChannel = this.findClassByName(className);
       if (!classChannel) {
@@ -54,6 +60,7 @@ export class ClassService {
       return true;
     } catch (error) {
       Logger.error('Error adding class for user', error);
+      return false;
     }
   }
 
@@ -67,6 +74,12 @@ export class ClassService {
 
   public async unregister(request: IClassRequest): Promise<boolean> {
     const { author, className } = request;
+
+    if (!className) {
+      Logger.error('Request does not have a class name');
+      return false;
+    }
+
     try {
       const classChannel = this.findClassByName(className);
       if (!classChannel) {
@@ -81,6 +94,7 @@ export class ClassService {
       return true;
     } catch (error) {
       Logger.error('Error unregistering from class');
+      return false;
     }
   }
 
