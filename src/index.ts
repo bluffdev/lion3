@@ -1,7 +1,8 @@
 import { Bot } from './bot';
 import { CommandHandler } from './events';
-import { commands } from './commands';
 
 (function start(): void {
-  new Bot(new CommandHandler(commands));
+  const bot = new Bot(new CommandHandler());
+  bot.loadCommands();
+  bot.start();
 })();

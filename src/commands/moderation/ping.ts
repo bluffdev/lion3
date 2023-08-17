@@ -1,11 +1,12 @@
-import { ChatInputCommandInteraction } from 'discord.js';
-import { Command, CommandDeferType } from '../command';
+import { ApplicationCommandType, ChatInputCommandInteraction } from 'discord.js';
+import { Command } from '../command';
 import { Logger, reply } from '../../utils';
 
-export class PingCommand implements Command {
+export default class PingCommand implements Command {
+  public type = ApplicationCommandType.ChatInput;
   public name = 'ping';
-  public deferType = CommandDeferType.HIDDEN;
-  public requireClientPerms = [];
+  public description = 'Replies with Pong!';
+  public dmPermission = false;
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
       await reply(interaction, 'Pong!');

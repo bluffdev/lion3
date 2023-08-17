@@ -1,20 +1,16 @@
-import { CommandInteraction, PermissionsString } from 'discord.js';
+import {
+  APIApplicationCommandOption,
+  ApplicationCommandType,
+  CommandInteraction,
+} from 'discord.js';
 
 export interface Command {
+  type?: ApplicationCommandType;
   name: string;
+  description: string;
+  dmPermission: boolean;
+  defaultMemberPermissions?: string;
   channels?: string[];
-  deferType: CommandDeferType;
-  requireClientPerms: PermissionsString[];
+  options?: APIApplicationCommandOption[];
   execute(interaction: CommandInteraction): Promise<void>;
 }
-
-export enum CommandDeferType {
-  PUBLIC = 'PUBLIC',
-  HIDDEN = 'HIDDEN',
-  NONE = 'NONE',
-}
-
-export const Status = {
-  SUCCESS: true,
-  FAILURE: false,
-};

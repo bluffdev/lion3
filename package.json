@@ -11,8 +11,6 @@
     "build": "tsc",
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
-    "commands:register": "npm run build && node dist/deploy-commands.js register",
-    "commands:delete": "npm run build && node dist/deploy-commands.js delete",
     "prepare": "husky install"
   },
   "author": "Brandon Rubio",

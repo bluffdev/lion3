@@ -1,14 +1,28 @@
-import { ChatInputCommandInteraction } from 'discord.js';
-import { Command, CommandDeferType } from '../command';
+import {
+  APIApplicationCommandOption,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  ChatInputCommandInteraction,
+} from 'discord.js';
+import { Command } from '../command';
 import { Logger, reply } from '../../utils';
 import { Channels } from '../../constants';
 import { classService } from '../../services';
 
-export class RegisterCommand implements Command {
+export default class RegisterCommand implements Command {
+  public type = ApplicationCommandType.ChatInput;
   public name = 'register';
+  public description = 'Register for a class';
+  public dmPermission = false;
   public channels = [Channels.Bot.BotCommands];
-  public deferType = CommandDeferType.HIDDEN;
-  public requireClientPerms = [];
+  public options = [
+    {
+      name: 'class',
+      description: 'Enter class to register for',
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    } as APIApplicationCommandOption,
+  ];
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const className = interaction.options.getString('class');
 
