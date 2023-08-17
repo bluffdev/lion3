@@ -1,4 +1,9 @@
-import { ApplicationCommandType, ChatInputCommandInteraction } from 'discord.js';
+import {
+  APIApplicationCommandOption,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import { Command } from '..';
 import { Logger, reply, replyWithEmbed, UserReport } from '../../utils';
 import { guildService, moderationService } from '../../services';
@@ -11,6 +16,32 @@ export default class ModReportCommand implements Command {
   public dmPermission = false;
   public defaultMemberPermissions = moderator;
   public channels = [Channels.Staff.ModCommands];
+  public options = [
+    {
+      name: 'tag',
+      description: 'Discord user tag',
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    } as APIApplicationCommandOption,
+    {
+      name: 'warn',
+      description: 'Do you want to issue a warning?',
+      type: ApplicationCommandOptionType.Boolean,
+      required: true,
+    } as APIApplicationCommandOption,
+    {
+      name: 'description',
+      description: 'Reason for report',
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    } as APIApplicationCommandOption,
+    {
+      name: 'screenshot',
+      description: 'Screenshot of offense',
+      type: ApplicationCommandOptionType.Attachment,
+      required: false,
+    } as APIApplicationCommandOption,
+  ];
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const user = interaction.options.getString('tag');
     const issueWarn = interaction.options.getBoolean('warn');

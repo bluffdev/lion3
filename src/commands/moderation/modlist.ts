@@ -1,4 +1,10 @@
-import { ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import {
+  APIApplicationCommandOption,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+} from 'discord.js';
 import { Command } from '..';
 import { Logger, reply, replyWithEmbed } from '../../utils';
 import { guildService, moderationService } from '../../services';
@@ -7,10 +13,18 @@ import { Channels, moderator, Roles } from '../../constants';
 export default class ModListCommand implements Command {
   public type = ApplicationCommandType.ChatInput;
   public name = 'modlist';
-  public description = '';
+  public description = 'Sends moderation reports for a user;';
   public dmPermission = false;
   public defaultMemberPermissions = moderator;
   public channels = [Channels.Staff.ModCommands];
+  public options = [
+    {
+      name: 'tag',
+      description: 'Discord user tag',
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    } as APIApplicationCommandOption,
+  ];
   public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const user = interaction.options.getString('tag');
 

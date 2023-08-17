@@ -1,11 +1,13 @@
 import {
   ApplicationCommandPermissionType,
+  ApplicationCommandType,
   CommandInteraction,
   Events,
   Interaction,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import { connectToDatabase, env, Logger } from './utils';
-import { Command, CommandMetadata, commands } from './commands';
+import { Command } from './commands';
 import { CommandHandler } from './events/command-handler';
 import { classService, clientService, commandDeploymentService, guildService } from './services';
 import path from 'path';
@@ -14,16 +16,30 @@ import fs from 'fs';
 export class Bot {
   constructor(private commandHandler: CommandHandler) {
     connectToDatabase(env.MONGO_URL);
-    this.registerSlashCommands();
-    this.loadCommands();
+  }
+
+  public async start(): Promise<void> {
+    await this.registerSlashCommands();
     this.registerListeners();
     this.login(env.CLIENT_TOKEN);
   }
 
   private async registerSlashCommands(): Promise<void> {
-    let localCmds = [...Object.values(CommandMetadata)];
+    const metadata: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
+    for (const cmd of clientService.commands) {
+      const meta: RESTPostAPIChatInputApplicationCommandsJSONBody = {
+        type: cmd.type as ApplicationCommandType.ChatInput,
+        name: cmd.name,
+        description: cmd.description,
+        dm_permission: cmd.dmPermission,
+        default_member_permissions: cmd.defaultMemberPermissions,
+        options: cmd.options,
+      };
+      metadata.push(meta);
+    }
+
     try {
-      await commandDeploymentService.registerAllCommands(localCmds);
+      await commandDeploymentService.registerAllCommands(metadata);
     } catch (error) {
       throw new Error(error);
     }
@@ -41,7 +57,9 @@ export class Bot {
           if (file.endsWith('.ts') || file.endsWith('.js')) {
             const commandImport = require(path.join(curr, file));
             const { default: commandClass } = commandImport;
-            commands.push(new commandClass());
+            const newCommand = new commandClass();
+
+            commands.push(newCommand);
           }
         }
       } catch (error) {
@@ -52,7 +70,7 @@ export class Bot {
     clientService.commands = commands;
   }
 
-  private registerListeners(): void {
+  private async registerListeners(): Promise<void> {
     clientService.on(Events.InteractionCreate, (intr: Interaction) => this.onInteraction(intr));
     clientService.once(Events.ClientReady, () => this.ready());
   }
@@ -84,12 +102,12 @@ export class Bot {
 
     const commandData = clientService.application.commands.cache;
 
-    for (const c of commands) {
-      if (c.channels) {
-        const command = commandData.find(cmd => cmd.name === c.name);
+    for (const cmd of clientService.commands) {
+      if (cmd.channels) {
+        const command = commandData.find(cmd => cmd.name === cmd.name);
 
         if (command) {
-          const permissions = c.channels.map(channelId => ({
+          const permissions = cmd.channels.map(channelId => ({
             id: channelId,
             type: ApplicationCommandPermissionType.Channel,
             permission: true,
