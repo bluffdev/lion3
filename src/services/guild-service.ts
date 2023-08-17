@@ -1,15 +1,14 @@
 import { clientService } from './';
 import { Guild, GuildChannel, GuildEmoji, Role, User } from 'discord.js';
-import { Maybe } from '../utils';
 import { Channels, Roles } from '../constants';
 
 export class GuildService {
   private guild: Guild;
-  private roleCache: Record<string, Maybe<Role>> = {
+  private roleCache: Record<string, Role | undefined> = {
     [Roles.Unverifed]: undefined,
   };
 
-  private channelCache: Record<string, Maybe<GuildChannel>> = {
+  private channelCache: Record<string, GuildChannel | undefined> = {
     [Channels.Info.CodeOfConduct]: undefined,
     [Channels.Blacklist.Verify]: undefined,
   };
@@ -58,7 +57,7 @@ export class GuildService {
     return this.channelCache[chanName];
   }
 
-  public getEmoji(emojiName: string): Maybe<GuildEmoji> {
+  public getEmoji(emojiName: string): GuildEmoji | undefined {
     const lowerEmojiName = emojiName.toLowerCase();
     return this.get()
       .emojis.cache.filter(e => e.name?.toLowerCase() === lowerEmojiName)
