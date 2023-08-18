@@ -6,7 +6,7 @@ import {
   TextChannel,
 } from 'discord.js';
 import { Command } from '../command';
-import { Logger, reply, replyWithEmbed } from '../../utils';
+import { reply, replyWithEmbed } from '../../utils';
 import { moderationService } from '../../services';
 import { Channels } from '../../constants';
 
@@ -41,19 +41,18 @@ export default class AnonReportCommand implements Command {
     const screenshot = interaction.options.getAttachment('screenshot');
 
     if (!anonymous || !description || screenshot === null) {
-      Logger.error('Error with options');
       await reply(interaction, `Failed to execute ${this.name} command`);
       return;
     }
 
-    const messageEmbed = await moderationService.fileAnonReport(
-      interaction.user,
-      anonymous,
-      description,
-      screenshot
-    );
-
     try {
+      const messageEmbed = await moderationService.fileAnonReport(
+        interaction.user,
+        anonymous,
+        description,
+        screenshot
+      );
+
       let hidden = false;
 
       if (interaction.channel instanceof TextChannel) {
@@ -66,7 +65,7 @@ export default class AnonReportCommand implements Command {
         hidden
       );
     } catch (error) {
-      Logger.error('Failed to send reply for anonreport command', error);
+      await reply(interaction, `Failed to execute ${this.name} command`, true);
     }
   }
 }
