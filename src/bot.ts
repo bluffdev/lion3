@@ -7,26 +7,32 @@ import {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import { connectToDatabase, env, Logger } from './utils';
-import { Command } from './commands';
 import { CommandHandler } from './events/command-handler';
-import { classService, clientService, commandDeploymentService, guildService } from './services';
-import path from 'path';
-import fs from 'fs';
+import { ClientService } from './services/client-service';
+import { CommandDeploymentService } from './services/command-deployment-service';
+import { GuildService } from './services/guild-service';
+import { ClassService } from './services/class-service';
 
 export class Bot {
-  constructor(private commandHandler: CommandHandler) {
+  constructor(
+    private clientService: ClientService,
+    private commandDeploymentService: CommandDeploymentService,
+    private guildService: GuildService,
+    private classService: ClassService,
+    private commandHandler: CommandHandler
+  ) {
     connectToDatabase(env.MONGO_URL);
   }
 
   public async start(): Promise<void> {
-    await this.registerSlashCommands();
+    this.registerSlashCommands();
     this.registerListeners();
     this.login(env.CLIENT_TOKEN);
   }
 
   private async registerSlashCommands(): Promise<void> {
     const metadata: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
-    for (const cmd of clientService.commands) {
+    for (const cmd of this.clientService.commands) {
       const meta: RESTPostAPIChatInputApplicationCommandsJSONBody = {
         type: cmd.type as ApplicationCommandType.ChatInput,
         name: cmd.name,
@@ -39,45 +45,22 @@ export class Bot {
     }
 
     try {
-      await commandDeploymentService.registerAllCommands(metadata);
+      await this.commandDeploymentService.registerAllCommands(metadata);
     } catch (error) {
       Logger.error('Failed to deploy commands', error);
     }
   }
 
-  public loadCommands(): void {
-    const directories = ['/commands/channels', '/commands/moderation'];
-    const commands: Command[] = [];
-
-    for (const dir of directories) {
-      const curr = path.join(__dirname, dir);
-      try {
-        const files = fs.readdirSync(curr);
-        for (const file of files) {
-          if (file.endsWith('.ts') || file.endsWith('.js')) {
-            const commandImport = require(path.join(curr, file));
-            const { default: commandClass } = commandImport;
-            const newCommand = new commandClass();
-
-            commands.push(newCommand);
-          }
-        }
-      } catch (error) {
-        console.error(`Error reading directory ${dir}`, error);
-      }
-    }
-
-    clientService.commands = commands;
-  }
-
   private async registerListeners(): Promise<void> {
-    clientService.on(Events.InteractionCreate, (intr: Interaction) => this.onInteraction(intr));
-    clientService.once(Events.ClientReady, () => this.ready());
+    this.clientService.on(Events.InteractionCreate, (intr: Interaction) =>
+      this.onInteraction(intr)
+    );
+    this.clientService.once(Events.ClientReady, () => this.ready());
   }
 
   private async login(token: string): Promise<void> {
     try {
-      await clientService.login(token);
+      await this.clientService.login(token);
       Logger.info('Client has logged in');
     } catch (error) {
       Logger.error('Client login error', error);
@@ -96,13 +79,13 @@ export class Bot {
   }
 
   private async ready(): Promise<void> {
-    guildService.setGuild();
-    classService.addClasses();
+    this.guildService.setGuild();
+    this.classService.addClasses();
     Logger.info('Client is ready');
 
-    const commandData = clientService.application?.commands.cache;
+    const commandData = this.clientService.application?.commands.cache;
 
-    for (const cmd of clientService.commands) {
+    for (const cmd of this.clientService.commands) {
       if (cmd.channels) {
         const command = commandData?.find(cmd => cmd.name === cmd.name);
 
@@ -113,7 +96,7 @@ export class Bot {
             permission: true,
           }));
 
-          clientService.guilds.cache
+          this.clientService.guilds.cache
             .first()
             ?.commands.permissions.add({ token: env.ClIENT_ID, command: command.id, permissions });
         }
