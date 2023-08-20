@@ -1,6 +1,6 @@
 import { GuildChannel, PermissionFlagsBits, User } from 'discord.js';
-import { guildService } from '.';
 import { ClassType, IClassRequest, Logger, RequestType } from '../utils';
+import { GuildService } from './guild-service';
 
 export interface IRegisterData {
   classChan: GuildChannel;
@@ -8,6 +8,8 @@ export interface IRegisterData {
 }
 
 export class ClassService {
+  constructor(private guildService: GuildService) {}
+
   private channels = new Map<ClassType, Map<string, GuildChannel>>();
 
   // When someone is allowed in a channel the bitfield value is the sum of their permissionOverwrites
@@ -148,7 +150,7 @@ export class ClassService {
   }
 
   public addClasses(): void {
-    guildService.get().channels.cache.forEach(channel => {
+    this.guildService.get().channels.cache.forEach(channel => {
       if (channel.isThread()) {
         return;
       }
@@ -157,7 +159,7 @@ export class ClassService {
         return;
       }
 
-      const category = guildService.get().channels.cache.get(channel.parentId);
+      const category = this.guildService.get().channels.cache.get(channel.parentId);
 
       if (category?.name.toLowerCase().includes('classes')) {
         for (const classType of Object.keys(ClassType).filter(k => k !== ClassType.ALL)) {

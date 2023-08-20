@@ -7,7 +7,6 @@ import {
   ThreadAutoArchiveDuration,
   User,
 } from 'discord.js';
-import { guildService, warningService } from '.';
 import {
   insertReport,
   IReportSummary,
@@ -20,11 +19,15 @@ import {
 } from '../utils';
 import { Channels, Roles } from '../constants';
 import { ModerationReportModel, ModerationWarningModel } from '../models';
+import { GuildService } from './guild-service';
+import { WarningService } from './warning-service';
 
 export class ModerationService {
   private readonly KICK_THRESH = 3;
   private readonly SUSPEND_THRESH = 4;
   private readonly BAN_THRESH = 5;
+
+  constructor(private guildService: GuildService, private warningService: WarningService) {}
 
   public async fileAnonReport(
     user: User,
@@ -32,7 +35,7 @@ export class ModerationService {
     message: string,
     screenshot?: Attachment
   ): Promise<EmbedBuilder> {
-    const modCommandsChannel = guildService
+    const modCommandsChannel = this.guildService
       .get()
       .channels.cache.find(c => c.name === Channels.Staff.ModCommands) as TextChannel;
 
@@ -65,7 +68,7 @@ export class ModerationService {
   public async fileReport(report: UserReport): Promise<EmbedBuilder> {
     await insertReport(report);
 
-    const member = await guildService
+    const member = await this.guildService
       .get()
       .members.fetch()
       .then(member => member.get(report.user));
@@ -84,7 +87,7 @@ export class ModerationService {
   }
 
   public async fileWarning(report: UserReport): Promise<EmbedBuilder> {
-    const member = await guildService
+    const member = await this.guildService
       .get()
       .members.fetch()
       .then(member => member.get(report.user));
@@ -104,7 +107,7 @@ export class ModerationService {
       reportId: fileReportResult,
     });
 
-    await warningService.sendModMessageToUser('A warning has been issued. ', report);
+    await this.warningService.sendModMessageToUser('A warning has been issued. ', report);
 
     const warnings =
       (await ModerationWarningModel.find({ user: report.user, guild: report.guild }).sort({
@@ -141,7 +144,7 @@ export class ModerationService {
 
   private async fileBan(report: UserReport, isPermanent: boolean): Promise<string> {
     try {
-      await guildService
+      await this.guildService
         .get()
         .members.cache.get(report.user)
         ?.send(
@@ -154,7 +157,7 @@ export class ModerationService {
     }
 
     try {
-      await guildService.get().members.ban(report.user, { reason: report.description });
+      await this.guildService.get().members.ban(report.user, { reason: report.description });
     } catch (error) {
       return `Issue occurred trying to ban user. ${error}`;
     }
@@ -188,7 +191,7 @@ export class ModerationService {
           .map(role => member.roles.remove(role))
       );
 
-      const suspendedRole = guildService.getRole(Roles.Suspended);
+      const suspendedRole = this.guildService.getRole(Roles.Suspended);
 
       if (!suspendedRole) {
         Logger.error('Error finding suspended role');

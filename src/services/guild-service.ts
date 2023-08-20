@@ -1,9 +1,9 @@
-import { clientService } from './';
 import { Guild, GuildChannel, GuildEmoji, Role, User } from 'discord.js';
 import { Channels, Roles } from '../constants';
+import { ClientService } from './client-service';
 
 export class GuildService {
-  private guild!: Guild;
+  private guild: Guild;
   private roleCache: Record<string, Role | undefined> = {
     [Roles.Unverifed]: undefined,
   };
@@ -13,8 +13,12 @@ export class GuildService {
     [Channels.Blacklist.Verify]: undefined,
   };
 
+  constructor(private clientService: ClientService) {
+    this.guild = this.clientService.guilds.cache.first() as Guild;
+  }
+
   public setGuild(): void {
-    const guild = clientService.guilds.cache.first();
+    const guild = this.clientService.guilds.cache.first();
     if (guild) {
       this.guild = guild;
     }
