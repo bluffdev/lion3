@@ -3,9 +3,7 @@ import { Command } from '../commands';
 import { env, Logger } from '../utils';
 
 export class ClientService extends Client {
-  public commands: Command[] = [];
-
-  constructor() {
+  constructor(public commands: Command[]) {
     super({
       intents: [
         GatewayIntentBits.Guilds,

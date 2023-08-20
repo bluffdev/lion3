@@ -7,8 +7,22 @@ import { WarningService } from './warning-service';
 import { ClassService } from './class-service';
 import { CommandService } from './command-service';
 
-export const clientService = new ClientService();
-export const commandDeploymentService = new CommandService(
+import RegisterCommand from '../commands/channels/register';
+import UnRegisterCommand from '../commands/channels/unregister';
+import AnonReportCommand from '../commands/moderation/anonreport';
+import ModListCommand from '../commands/moderation/modlist';
+import ModReportCommand from '../commands/moderation/modreport';
+import PingCommand from '../commands/moderation/ping';
+
+export const clientService = new ClientService([
+  new RegisterCommand(),
+  new UnRegisterCommand(),
+  new AnonReportCommand(),
+  new ModListCommand(),
+  new ModReportCommand(),
+  new PingCommand(),
+]);
+export const commandService = new CommandService(
   new REST({ version: '10' }).setToken(env.CLIENT_TOKEN),
   clientService
 );
