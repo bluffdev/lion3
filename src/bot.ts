@@ -1,22 +1,20 @@
 import {
   ApplicationCommandPermissionType,
-  ApplicationCommandType,
   CommandInteraction,
   Events,
   Interaction,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import { connectToDatabase, env, Logger } from './utils';
 import { CommandHandler } from './events/command-handler';
 import { ClientService } from './services/client-service';
-import { CommandDeploymentService } from './services/command-deployment-service';
+import { CommandService } from './services/command-service';
 import { GuildService } from './services/guild-service';
 import { ClassService } from './services/class-service';
 
 export class Bot {
   constructor(
     private clientService: ClientService,
-    private commandDeploymentService: CommandDeploymentService,
+    private commandService: CommandService,
     private guildService: GuildService,
     private classService: ClassService,
     private commandHandler: CommandHandler
@@ -25,30 +23,9 @@ export class Bot {
   }
 
   public async start(): Promise<void> {
-    this.registerSlashCommands();
+    this.commandService.registerCommands();
     this.registerListeners();
     this.login(env.CLIENT_TOKEN);
-  }
-
-  private async registerSlashCommands(): Promise<void> {
-    const metadata: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
-    for (const cmd of this.clientService.commands) {
-      const meta: RESTPostAPIChatInputApplicationCommandsJSONBody = {
-        type: cmd.type as ApplicationCommandType.ChatInput,
-        name: cmd.name,
-        description: cmd.description,
-        dm_permission: cmd.dmPermission,
-        default_member_permissions: cmd.defaultMemberPermissions,
-        options: cmd.options,
-      };
-      metadata.push(meta);
-    }
-
-    try {
-      await this.commandDeploymentService.registerAllCommands(metadata);
-    } catch (error) {
-      Logger.error('Failed to deploy commands', error);
-    }
   }
 
   private async registerListeners(): Promise<void> {
