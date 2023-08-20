@@ -1,10 +1,12 @@
 import { EmbedBuilder } from 'discord.js';
 import { Logger, UserReport } from '../utils';
-import { clientService } from './';
+import { ClientService } from './client-service';
 
 export class WarningService {
+  constructor(private clientService: ClientService) {}
+
   public async sendModMessageToUser(message: string, rep: UserReport): Promise<void> {
-    const user = clientService.users.cache.get(rep.user);
+    const user = this.clientService.users.cache.get(rep.user);
 
     if (!user) {
       Logger.error('Could not find warned user');

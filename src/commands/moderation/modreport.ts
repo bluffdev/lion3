@@ -5,7 +5,7 @@ import {
   ChatInputCommandInteraction,
 } from 'discord.js';
 import { Command } from '..';
-import { Logger, reply, replyWithEmbed, UserReport } from '../../utils';
+import { reply, replyWithEmbed, UserReport } from '../../utils';
 import { guildService, moderationService } from '../../services';
 import { Channels, moderator, Roles } from '../../constants';
 
@@ -49,8 +49,7 @@ export default class ModReportCommand implements Command {
     const attachment = interaction.options.getAttachment('screenshot', false);
 
     if (!description) {
-      Logger.error('Error with description option');
-      await reply(interaction, `Failed to execute ${this.name} command`);
+      await reply(interaction, `Failed to execute ${this.name} command`, true);
       return;
     }
 
@@ -64,27 +63,27 @@ export default class ModReportCommand implements Command {
     }
 
     if (member.user.bot) {
-      await reply(interaction, 'You cannot report a bot');
+      await reply(interaction, 'You cannot report a bot', true);
       return;
     }
 
     if (
       member.roles.cache.find(role => role.name === Roles.Moderator || role.name === Roles.Admin)
     ) {
-      await reply(interaction, 'You cannot report a moderator');
+      await reply(interaction, 'You cannot report a moderator', true);
       return;
     }
 
     try {
       const newReport = new UserReport(
-        guildService.get(),
+        guildService.get().id,
         member.id,
         description,
         attachment ? attachment.url : undefined
       );
 
       if (!newReport) {
-        await reply(interaction, 'Error creating report');
+        await reply(interaction, `Failed to execute ${this.name} command`, true);
       }
 
       if (issueWarn) {
@@ -93,7 +92,7 @@ export default class ModReportCommand implements Command {
         await replyWithEmbed(interaction, await moderationService.fileReport(newReport));
       }
     } catch (error) {
-      Logger.error(`Failed to execute ${this.name} command`, error);
+      await reply(interaction, `Failed to execute ${this.name} command`, true);
     }
   }
 }

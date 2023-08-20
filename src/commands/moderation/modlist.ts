@@ -6,7 +6,7 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import { Command } from '..';
-import { Logger, reply, replyWithEmbed } from '../../utils';
+import { reply, replyWithEmbed } from '../../utils';
 import { guildService, moderationService } from '../../services';
 import { Channels, moderator, Roles } from '../../constants';
 
@@ -38,14 +38,14 @@ export default class ModListCommand implements Command {
     }
 
     if (member.user.bot) {
-      await reply(interaction, 'You cannot use this command on a bot');
+      await reply(interaction, `You cannot use this ${this.name} on a bot`, true);
       return;
     }
 
     if (
       member.roles.cache.find(role => role.name === Roles.Moderator || role.name === Roles.Admin)
     ) {
-      await reply(interaction, 'You cannot use this command on a moderator');
+      await reply(interaction, `You cannot use ${this.name} on a moderator`, true);
       return;
     }
 
@@ -58,10 +58,9 @@ export default class ModListCommand implements Command {
         await replyWithEmbed(interaction, list);
       } else {
         await reply(interaction, 'Error with reply :(');
-        Logger.error('Incorrect type in reply for list command');
       }
     } catch (error) {
-      Logger.error('Failed to execute modlist command', error);
+      await reply(interaction, `Failed to execute ${this.name} command`, true);
     }
   }
 }

@@ -49,11 +49,18 @@ export class CommandHandler implements EventHandler {
       }
     }
 
+    const commandEvent: { status: string; commandName: string; user: string } = {
+      status: 'starting',
+      commandName: command.name,
+      user: intr.user.username,
+    };
+
     try {
       await command.execute(intr as CommandInteraction<CacheType>);
-      Logger.info(`Executed ${command.name} command`);
+      Logger.info(JSON.stringify(commandEvent));
     } catch (error) {
-      Logger.error('Error executing command', error);
+      commandEvent.status = 'error';
+      Logger.error(JSON.stringify(commandEvent), error);
     }
   }
 }
