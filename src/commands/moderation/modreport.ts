@@ -76,7 +76,7 @@ export default class ModReportCommand implements Command {
 
     try {
       const newReport = new UserReport(
-        guildService.get(),
+        guildService.get().id,
         member.id,
         description,
         attachment ? attachment.url : undefined

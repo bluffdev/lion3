@@ -10,8 +10,6 @@ export async function resolveToID(guild: Guild, tag: string): Promise<string | n
       return id;
     }
 
-    // If the lookup didn't work, they may be banned
-    // So check the banned list
     const bannedMembers = await guild.bans.fetch();
     const bannedMember = bannedMembers.filter(u => u.user.tag === tag).first();
     if (bannedMember) {
@@ -29,9 +27,7 @@ export async function resolveToID(guild: Guild, tag: string): Promise<string | n
   }
 }
 
-// Takes in an id or tag and finds the member
 export async function resolveUser(guild: Guild, tag: string): Promise<GuildMember | undefined> {
-  // Convert to ID to use for finding the GuildMember
   const id = await resolveToID(guild, tag);
   if (!id) {
     return;
@@ -92,17 +88,14 @@ export interface IModerationWarning {
 export type ModerationWarningDocument = IModerationWarning & Document;
 
 export class UserReport implements IModerationReport {
-  public guild: Snowflake;
-  public user: Snowflake;
-  public description: string;
-  public attachment?: string;
   public timeStr: string;
 
-  constructor(guild: Guild, id: string, description: string, attachment?: string) {
-    this.guild = guild.id;
-    this.user = id;
-    this.description = description;
-    this.attachment = attachment;
+  constructor(
+    public guild: Snowflake,
+    public user: Snowflake,
+    public description: string,
+    public attachment?: string
+  ) {
     this.timeStr = new Date().toISOString();
   }
 
