@@ -1,7 +1,7 @@
 {
-  "name": "lion",
-  "version": "3.0.0",
-  "description": "A better Discord bot for the UCF Computer Science Discord",
+  "name": "unibot",
+  "version": "0.0.1",
+  "description": "A discord bot for managing university class channels",
   "main": "src/index.ts",
   "scripts": {
     "lint": "eslint . --fix --cache --ext .js,.ts",
@@ -11,23 +11,25 @@
     "build": "tsc",
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "commands:register": "npm run build && node dist/deploy-commands.js register",
+    "commands:delete": "npm run build && node dist/deploy-commands.js delete"
   },
   "author": "Brandon Rubio",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bluffdev/lion3"
+    "url": "https://github.com/bluffdev/unibot"
   },
   "bugs": {
-    "url": "https://github.com/bluffdev/lion3/issues"
+    "url": "https://github.com/bluffdev/unibot/issues"
   },
   "keywords": [
     "Discord",
-    "UCF",
-    "University of Central Florida",
+    "University",
     "CS",
-    "Computer Science"
+    "Computer Science",
+    "Computer Engineering"
   ],
   "engines": {
     "node": ">=18.0.0",

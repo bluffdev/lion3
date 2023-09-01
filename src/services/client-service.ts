@@ -1,10 +1,9 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { Command } from '../commands';
+import { env, Logger } from '../utils';
 
 export class ClientService extends Client {
-  public commands: Command[] = [];
-
-  constructor() {
+  constructor(public commands: Command[]) {
     super({
       intents: [
         GatewayIntentBits.Guilds,
@@ -14,5 +13,8 @@ export class ClientService extends Client {
         GatewayIntentBits.GuildMessageReactions,
       ],
     });
+    this.login(env.CLIENT_TOKEN)
+      .then(() => Logger.info('Client has logged in'))
+      .catch(error => Logger.error('Client login error', error));
   }
 }

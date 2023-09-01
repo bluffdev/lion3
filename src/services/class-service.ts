@@ -150,7 +150,7 @@ export class ClassService {
   }
 
   public addClasses(): void {
-    this.guildService.get().channels.cache.forEach(channel => {
+    this.guildService.get()?.channels.cache.forEach(channel => {
       if (channel.isThread()) {
         return;
       }
