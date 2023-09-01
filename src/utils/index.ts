@@ -1,5 +1,4 @@
 export * from './config';
-export * from './mongo-utils';
 export * from './logger';
 export * from './interaction-utils';
 export * from './command-utils';

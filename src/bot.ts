@@ -4,7 +4,7 @@ import {
   Events,
   Interaction,
 } from 'discord.js';
-import { connectToDatabase, env, Logger } from './utils';
+import { env, Logger } from './utils';
 import { CommandHandler } from './events/command-handler';
 import { ClientService } from './services/client-service';
 import { CommandService } from './services/command-service';
@@ -18,9 +18,7 @@ export class Bot {
     private guildService: GuildService,
     private classService: ClassService,
     private commandHandler: CommandHandler
-  ) {
-    connectToDatabase(env.MONGO_URL);
-  }
+  ) {}
 
   public async start(): Promise<void> {
     this.commandService.registerCommands();
